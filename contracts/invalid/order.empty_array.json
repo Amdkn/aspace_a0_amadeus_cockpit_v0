@@ -1,0 +1,20 @@
+{
+    "schema_version": "1.0",
+    "id": "ORD-20250101-002",
+    "created_at": "2025-01-01T10:00:00Z",
+    "created_by": "Beth",
+    "project_id": "TEST",
+    "cycle": {
+        "type": "12WY",
+        "week": 1
+    },
+    "rock": {
+        "title": "Test Rock",
+        "definition_of_done": [
+            "Item 1"
+        ]
+    },
+    "tactics": [],
+    "constraints": [],
+    "escalation_rules": []
+}

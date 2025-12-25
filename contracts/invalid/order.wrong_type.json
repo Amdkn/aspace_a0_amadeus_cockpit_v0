@@ -1,0 +1,31 @@
+{
+    "schema_version": "1.0",
+    "id": "ORD-20250101-001",
+    "created_at": "2025-01-01T10:00:00Z",
+    "created_by": "Beth",
+    "project_id": "TEST",
+    "cycle": {
+        "type": "12WY",
+        "week": "not_a_number"
+    },
+    "rock": {
+        "title": "Test Rock",
+        "definition_of_done": [
+            "Item 1"
+        ]
+    },
+    "tactics": [
+        {
+            "id": "T-01",
+            "domain": "Product",
+            "action": "Build feature",
+            "owner": "Summer",
+            "dependencies": [],
+            "acceptance_tests": [
+                "Test 1"
+            ]
+        }
+    ],
+    "constraints": [],
+    "escalation_rules": []
+}

@@ -131,10 +131,21 @@ class ASpaceValidator {
 }
 
 // Execution logic
-const schemasFiles = fs.readdirSync(protocolsDir).filter(f => f.endsWith(".json"));
+const schemasFiles = fs.readdirSync(protocolsDir).filter(f => f => f.endsWith(".json"));
 const examplesFiles = fs.readdirSync(examplesDir).filter(f => f.endsWith(".json"));
 
+const invalidDir = "./contracts/invalid";
+let invalidFiles = [];
+if (fs.existsSync(invalidDir)) {
+    invalidFiles = fs.readdirSync(invalidDir).filter(f => f.endsWith(".json"));
+}
+
 let systemHealthy = true;
+let validCount = 0;
+let invalidCount = 0;
+
+console.log("\n📋 VALID CONTRACTS (must pass):");
+console.log("================================");
 
 examplesFiles.forEach(file => {
     const data = JSON.parse(fs.readFileSync(path.join(examplesDir, file), "utf-8"));
@@ -145,13 +156,11 @@ examplesFiles.forEach(file => {
         const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"));
         const validator = new ASpaceValidator();
 
-        // Root context for $ref resolution
-        schema.rootContext = schema;
-
         validator.validate(data, schema);
 
         if (validator.errors.length === 0) {
             console.log(`✅ ${file.padEnd(25)} | CONTRAT CONFORME`);
+            validCount++;
         } else {
             console.error(`🚨 ${file.padEnd(25)} | ÉCHECS :`);
             validator.errors.forEach(err => console.error(`   - ${err}`));
@@ -161,6 +170,42 @@ examplesFiles.forEach(file => {
         console.warn(`⚠️  Schéma manquant pour ${file}`);
     }
 });
+
+if (invalidFiles.length > 0) {
+    console.log("\n🔥 INVALID CONTRACTS (must fail):");
+    console.log("=================================");
+
+    invalidFiles.forEach(file => {
+        const data = JSON.parse(fs.readFileSync(path.join(invalidDir, file), "utf-8"));
+
+        // Infer schema from filename pattern (e.g., "decision.extra_property.json" -> "decision.schema.json")
+        const schemaName = file.split('.')[0];
+        const schemaFile = `${schemaName}.schema.json`;
+        const schemaPath = path.join(protocolsDir, schemaFile);
+
+        if (fs.existsSync(schemaPath)) {
+            const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"));
+            const validator = new ASpaceValidator();
+
+            validator.validate(data, schema);
+
+            if (validator.errors.length > 0) {
+                console.log(`✅ ${file.padEnd(35)} | REJETÉ (attendu)`);
+                console.log(`   └─ ${validator.errors[0]}`);
+                invalidCount++;
+            } else {
+                console.error(`🚨 ${file.padEnd(35)} | ACCEPTÉ (DANGER!)`);
+                console.error(`   └─ Ce contrat invalide a passé la validation`);
+                systemHealthy = false;
+            }
+        } else {
+            console.warn(`⚠️  Schéma manquant pour ${file}`);
+        }
+    });
+}
+
+console.log("\n" + "=".repeat(50));
+console.log(`📊 Résultats: ${validCount} valides | ${invalidCount} invalides rejetés`);
 
 if (systemHealthy) {
     console.log("\n✨ Mycélium stable. La Loi est exécutée sans dépendances externes.");
