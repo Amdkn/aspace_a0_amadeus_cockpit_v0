@@ -1,6 +1,26 @@
-# A'Space OS V4 — Cockpit API
+# A'Space OS V2 — Phoenix Architect
 
-> **"Le projet s'explique lui-même. L'agent exécute."**
+> **L'Âge des Architectes commence ici.**
+
+## 🚀 Quickstart (30 secondes)
+
+1.  **Validation des Contrats** :
+    ```bash
+    npm run validate
+    ```
+2.  **Statut du Cockpit** :
+    ```bash
+    python ops/automation/orchestrator.py status
+    ```
+3.  **Audit d'Antifragilité** :
+    ```bash
+    python ops/automation/orchestrator.py audit
+    ```
+
+---
+
+## 🏛️ Vision & Architecture
+A'Space OS est un système fractal...
 
 ---
 
