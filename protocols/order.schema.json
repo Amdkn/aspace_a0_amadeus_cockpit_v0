@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amadeuspace.com/schemas/order.schema.json",
+  "title": "A'Space Contract — Execution Order (Morty → Jerry/Summer)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "created_at",
+    "created_by",
+    "project_id",
+    "cycle",
+    "rock",
+    "tactics",
+    "constraints",
+    "escalation_rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "$ref": "#/$defs/id_string",
+      "pattern": "^ORD-\\d{8}-\\d{3}$"
+    },
+    "created_at": {
+      "$ref": "#/$defs/iso_datetime"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 2
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "cycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "week"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "12WY",
+            "SOB",
+            "ADHOC"
+          ]
+        },
+        "week": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        }
+      }
+    },
+    "rock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "definition_of_done"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 3
+        },
+        "definition_of_done": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "tactics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "domain",
+          "action",
+          "owner",
+          "dependencies",
+          "acceptance_tests"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^T-\\d{2,3}$"
+          },
+          "domain": {
+            "$ref": "#/$defs/domain_tag"
+          },
+          "action": {
+            "type": "string",
+            "minLength": 3
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 2
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "acceptance_tests": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "constraints": {
+      "$ref": "#/$defs/string_list"
+    },
+    "escalation_rules": {
+      "$ref": "#/$defs/string_list"
+    },
+    "linked_decision_id": {
+      "type": "string",
+      "pattern": "^DEC-\\d{8}-\\d{3}$"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "iso_datetime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "id_string": {
+      "type": "string",
+      "minLength": 3
+    },
+    "signal_level": {
+      "type": "string",
+      "enum": [
+        "green",
+        "orange",
+        "red"
+      ]
+    },
+    "energy_cost": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "domain_tag": {
+      "type": "string",
+      "minLength": 2
+    },
+    "string_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}

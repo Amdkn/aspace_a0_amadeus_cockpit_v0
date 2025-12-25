@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amadeuspace.com/schemas/decision.schema.json",
+  "title": "A'Space Contract — Type 4 Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "created_at",
+    "created_by",
+    "linked_intent_id",
+    "signal_level",
+    "type4_question",
+    "options",
+    "recommendation",
+    "rationale_10_lines_max",
+    "deadline",
+    "a0_decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "$ref": "#/$defs/id_string",
+      "pattern": "^DEC-\\d{8}-\\d{3}$"
+    },
+    "created_at": {
+      "$ref": "#/$defs/iso_datetime"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 2
+    },
+    "linked_intent_id": {
+      "type": "string",
+      "pattern": "^INT-\\d{8}-\\d{3}$"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "signal_level": {
+      "$ref": "#/$defs/signal_level"
+    },
+    "gate": {
+      "type": "string",
+      "enum": [
+        "BETH",
+        "RICK",
+        "SINGULARITY",
+        "OTHER"
+      ],
+      "default": "OTHER"
+    },
+    "type4_question": {
+      "type": "string",
+      "minLength": 5
+    },
+    "options": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "option",
+          "label"
+        ],
+        "properties": {
+          "option": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3
+          },
+          "label": {
+            "type": "string",
+            "minLength": 3
+          }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rationale_10_lines_max": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "deadline": {
+      "$ref": "#/$defs/iso_datetime"
+    },
+    "a0_decision": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "selected_option",
+            "decided_at",
+            "decided_by"
+          ],
+          "properties": {
+            "selected_option": {
+              "type": "string",
+              "minLength": 1
+            },
+            "decided_at": {
+              "$ref": "#/$defs/iso_datetime"
+            },
+            "decided_by": {
+              "type": "string",
+              "minLength": 2
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "iso_datetime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "id_string": {
+      "type": "string",
+      "minLength": 3
+    },
+    "signal_level": {
+      "type": "string",
+      "enum": [
+        "green",
+        "orange",
+        "red"
+      ]
+    },
+    "energy_cost": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "domain_tag": {
+      "type": "string",
+      "minLength": 2
+    },
+    "string_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}

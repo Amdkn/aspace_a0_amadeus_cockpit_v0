@@ -1,0 +1,77 @@
+{
+    "mcpServers": {
+        "hostinger": {
+            "command": "ssh",
+            "args": [
+                "root@${VPS_IP}",
+                "-i",
+                "${SSH_KEY_PATH}"
+            ],
+            "env": {
+                "VPS_IP": "${VPS_IP}",
+                "SSH_KEY_PATH": "${SSH_KEY_PATH}"
+            }
+        },
+        "coolify": {
+            "command": "node",
+            "args": [
+                "mcp-servers/coolify/index.js"
+            ],
+            "env": {
+                "COOLIFY_API_URL": "https://coolify.aspace-os.com",
+                "COOLIFY_API_TOKEN": "${COOLIFY_API_TOKEN}"
+            }
+        },
+        "n8n": {
+            "command": "node",
+            "args": [
+                "mcp-servers/n8n/index.js"
+            ],
+            "env": {
+                "N8N_API_URL": "https://n8n.aspace-os.com",
+                "N8N_API_KEY": "${N8N_API_KEY}"
+            }
+        },
+        "github": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-github"
+            ],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PAT}"
+            }
+        },
+        "supabase": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-postgres",
+                "${SUPABASE_CONNECTION_STRING}"
+            ],
+            "env": {
+                "SUPABASE_URL": "${SUPABASE_URL}",
+                "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"
+            }
+        },
+        "ollama": {
+            "command": "node",
+            "args": [
+                "mcp-servers/ollama/index.js"
+            ],
+            "env": {
+                "OLLAMA_URL": "http://localhost:11434"
+            }
+        }
+    },
+    "skills": {
+        "path": "spec/skills",
+        "note": "OpenAI Codex can reference SKILL.md files for MCP usage patterns",
+        "recommended": [
+            "mcp/github.md",
+            "mcp/coolify.md",
+            "mcp/supabase.md",
+            "mcp/ollama.md"
+        ]
+    }
+}

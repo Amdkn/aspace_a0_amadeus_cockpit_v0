@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amadeuspace.com/schemas/intent.schema.json",
+  "title": "A'Space Contract — Intent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "created_at",
+    "created_by",
+    "title",
+    "intent_text",
+    "domains_touched",
+    "expected_energy_cost",
+    "time_horizon",
+    "risk_level",
+    "constraints",
+    "success_criteria",
+    "needs_type4_decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "$ref": "#/$defs/id_string",
+      "pattern": "^INT-\\d{8}-\\d{3}$"
+    },
+    "created_at": {
+      "$ref": "#/$defs/iso_datetime"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 2
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "intent_text": {
+      "type": "string",
+      "minLength": 3
+    },
+    "domains_touched": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/domain_tag"
+      }
+    },
+    "expected_energy_cost": {
+      "$ref": "#/$defs/energy_cost"
+    },
+    "time_horizon": {
+      "type": "string",
+      "enum": [
+        "now",
+        "1w",
+        "4w",
+        "12WY",
+        "1y",
+        "3y",
+        "10y"
+      ]
+    },
+    "risk_level": {
+      "$ref": "#/$defs/risk_level"
+    },
+    "constraints": {
+      "$ref": "#/$defs/string_list"
+    },
+    "success_criteria": {
+      "$ref": "#/$defs/string_list"
+    },
+    "needs_type4_decision": {
+      "type": "boolean"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "iso_datetime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "id_string": {
+      "type": "string",
+      "minLength": 3
+    },
+    "signal_level": {
+      "type": "string",
+      "enum": [
+        "green",
+        "orange",
+        "red"
+      ]
+    },
+    "energy_cost": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "domain_tag": {
+      "type": "string",
+      "minLength": 2
+    },
+    "string_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}

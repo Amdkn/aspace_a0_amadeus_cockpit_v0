@@ -1,0 +1,25 @@
+{
+    "schema_version": "1.0",
+    "id": "INT-20250714-001",
+    "created_at": "2025-07-14T08:00:00Z",
+    "created_by": "A0-Architecte",
+    "title": "Lancer MCP Gateway v1",
+    "intent_text": "Exposer un MCP Gateway sécurisé pour orchestration IA",
+    "domains_touched": [
+        "IT",
+        "LD02",
+        "LD04"
+    ],
+    "expected_energy_cost": "medium",
+    "time_horizon": "12WY",
+    "risk_level": "low",
+    "constraints": [
+        "Isolation Docker",
+        "Authentification mTLS"
+    ],
+    "success_criteria": [
+        "Ping réussi",
+        "Logs visibles dans Jerry"
+    ],
+    "needs_type4_decision": false
+}

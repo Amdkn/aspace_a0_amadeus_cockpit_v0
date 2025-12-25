@@ -1,0 +1,136 @@
+{
+    "mcpServers": {
+        "google-workspace": {
+            "command": "uvx",
+            "args": [
+                "google-workspace-mcp"
+            ],
+            "env": {
+                "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+                "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}"
+            },
+            "description": "Organe Communication: G-Tasks, Calendar, Drive, Chat (Human-in-the-loop)"
+        },
+        "context7": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@upstash/context7-mcp@latest"
+            ],
+            "description": "Cortex Recherche: Docs externes précises (anti-hallucination)"
+        },
+        "zep-memory": {
+            "command": "uv",
+            "args": [
+                "run",
+                "python",
+                "-m",
+                "mcp_zepai"
+            ],
+            "env": {
+                "ZEP_API_KEY": "${ZEP_API_KEY}"
+            },
+            "description": "Mémoire Souveraine (RAG): Historique PARA, décisions stratégiques"
+        },
+        "hostinger": {
+            "command": "ssh",
+            "args": [
+                "root@${VPS_IP}",
+                "-i",
+                "${SSH_KEY_PATH}"
+            ],
+            "env": {
+                "VPS_IP": "${VPS_IP}",
+                "SSH_KEY_PATH": "${SSH_KEY_PATH}"
+            }
+        },
+        "coolify": {
+            "command": "node",
+            "args": [
+                "mcp-servers/coolify/index.js"
+            ],
+            "env": {
+                "COOLIFY_API_URL": "https://coolify.aspace-os.com",
+                "COOLIFY_API_TOKEN": "${COOLIFY_API_TOKEN}"
+            }
+        },
+        "n8n": {
+            "command": "node",
+            "args": [
+                "mcp-servers/n8n/index.js"
+            ],
+            "env": {
+                "N8N_API_URL": "https://n8n.aspace-os.com",
+                "N8N_API_KEY": "${N8N_API_KEY}"
+            }
+        },
+        "github": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-github"
+            ],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PAT}"
+            }
+        },
+        "supabase": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-postgres",
+                "${SUPABASE_CONNECTION_STRING}"
+            ],
+            "env": {
+                "SUPABASE_URL": "${SUPABASE_URL}",
+                "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"
+            }
+        },
+        "ollama": {
+            "command": "node",
+            "args": [
+                "mcp-servers/ollama/index.js"
+            ],
+            "env": {
+                "OLLAMA_URL": "http://localhost:11434"
+            }
+        },
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "${ASPACE_COCKPIT}"
+            ],
+            "description": "Ancrage Local: Accès sécurisé Vortex Local"
+        }
+    },
+    "skills": {
+        "path": "spec/skills",
+        "autoload": [
+            "conductor.md",
+            "mcp/hostinger.md",
+            "mcp/coolify.md",
+            "mcp/n8n.md",
+            "mcp/github.md",
+            "mcp/supabase.md",
+            "mcp/ollama.md"
+        ]
+    },
+    "conductor": {
+        "enabled": true,
+        "product": "conductor/product.md",
+        "techStack": "conductor/tech-stack.md",
+        "workflow": "conductor/workflow.md"
+    },
+    "phoenixArchitect": {
+        "version": "V2",
+        "organs": {
+            "communication": "google-workspace",
+            "reflection": "zep-memory",
+            "economic": "financial_guard.py",
+            "visual": "agui (pending)"
+        },
+        "thinkingWorkflow": "EPCT"
+    }
+}

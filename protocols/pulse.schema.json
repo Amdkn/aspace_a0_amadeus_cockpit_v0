@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amadeuspace.com/schemas/pulse.schema.json",
+  "title": "A'Space Contract — Business Pulse (Summer → Jerry)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "created_at",
+    "created_by",
+    "project_id",
+    "week",
+    "signal_level",
+    "kpi",
+    "domains",
+    "type4_decisions_needed"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "$ref": "#/$defs/id_string",
+      "pattern": "^PULSE-\\d{8}-[A-Z0-9_-]+-W\\d{2}$"
+    },
+    "created_at": {
+      "$ref": "#/$defs/iso_datetime"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 2
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "week": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 12
+    },
+    "signal_level": {
+      "$ref": "#/$defs/signal_level"
+    },
+    "kpi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tmi_current",
+        "tmi_target",
+        "tvr_score",
+        "12wy_completion_pct"
+      ],
+      "properties": {
+        "tmi_current": {
+          "type": "number",
+          "minimum": 0
+        },
+        "tmi_target": {
+          "type": "number",
+          "minimum": 0
+        },
+        "tvr_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "12wy_completion_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "domains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Growth",
+        "Product",
+        "Ops",
+        "Finance",
+        "People",
+        "IT",
+        "Legal"
+      ],
+      "properties": {
+        "Growth": {
+          "$ref": "#/$defs/domain_report"
+        },
+        "Product": {
+          "$ref": "#/$defs/domain_report"
+        },
+        "Ops": {
+          "$ref": "#/$defs/domain_report"
+        },
+        "Finance": {
+          "$ref": "#/$defs/domain_report"
+        },
+        "People": {
+          "$ref": "#/$defs/domain_report"
+        },
+        "IT": {
+          "$ref": "#/$defs/domain_report"
+        },
+        "Legal": {
+          "$ref": "#/$defs/domain_report"
+        }
+      }
+    },
+    "type4_decisions_needed": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "question",
+          "deadline",
+          "context"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 5
+          },
+          "deadline": {
+            "$ref": "#/$defs/iso_datetime"
+          },
+          "context": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "iso_datetime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "id_string": {
+      "type": "string",
+      "minLength": 3
+    },
+    "signal_level": {
+      "type": "string",
+      "enum": [
+        "green",
+        "orange",
+        "red"
+      ]
+    },
+    "energy_cost": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "domain_tag": {
+      "type": "string",
+      "minLength": 2
+    },
+    "string_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "domain_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "done",
+        "blocked",
+        "next"
+      ],
+      "properties": {
+        "done": {
+          "$ref": "#/$defs/string_list"
+        },
+        "blocked": {
+          "$ref": "#/$defs/string_list"
+        },
+        "next": {
+          "$ref": "#/$defs/string_list"
+        }
+      }
+    }
+  }
+}

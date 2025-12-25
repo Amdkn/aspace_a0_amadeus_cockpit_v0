@@ -1,0 +1,79 @@
+{
+    "schema_version": "1.0",
+    "id": "PLS-20250720",
+    "created_at": "2025-07-20T18:00:00Z",
+    "created_by": "Summer-Ops",
+    "project_id": "ASPACE-MCP-V1",
+    "week": 1,
+    "signal_level": "green",
+    "kpi": {
+        "tmi_current": 500,
+        "tmi_target": 2000,
+        "tvr_score": 0.8,
+        "12wy_completion_pct": 0.1
+    },
+    "domains": {
+        "Growth": {
+            "done": [],
+            "blocked": [],
+            "next": [
+                "Ads campaign"
+            ]
+        },
+        "Product": {
+            "done": [
+                "UI drafting"
+            ],
+            "blocked": [],
+            "next": [
+                "API wiring"
+            ]
+        },
+        "Ops": {
+            "done": [
+                "Task setup"
+            ],
+            "blocked": [],
+            "next": [
+                "Process audit"
+            ]
+        },
+        "Finance": {
+            "done": [
+                "Budget sync"
+            ],
+            "blocked": [],
+            "next": [
+                "Invoicing"
+            ]
+        },
+        "People": {
+            "done": [
+                "Expert hired"
+            ],
+            "blocked": [],
+            "next": [
+                "Onboarding"
+            ]
+        },
+        "IT": {
+            "done": [
+                "Docker up"
+            ],
+            "blocked": [],
+            "next": [
+                "Monitoring"
+            ]
+        },
+        "Legal": {
+            "done": [
+                "ToS drafted"
+            ],
+            "blocked": [],
+            "next": [
+                "Final review"
+            ]
+        }
+    },
+    "type4_decisions_needed": []
+}

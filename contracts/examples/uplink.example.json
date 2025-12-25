@@ -1,0 +1,24 @@
+{
+    "schema_version": "1.0",
+    "id": "UPLN-20250721",
+    "created_at": "2025-07-21T06:00:00Z",
+    "created_by": "Jerry",
+    "week": 1,
+    "project_id": "ASPACE-GLOBAL",
+    "lines": [
+        "1. Semaine 01 terminée avec succès.",
+        "2. Déploiement MCP Gateway effectué par Summer-IT.",
+        "3. Focus LD04 maintenu, énergie stable.",
+        "4. KPI TMI à 500€/mois (nominale).",
+        "5. Taux de complétion 12WY à 10%.",
+        "6. Beth a validé les intentions Q3.",
+        "7. Rick prépare l'audit biomimétique.",
+        "8. Morty orchestre le passage à la W02.",
+        "9. Aucun bloqueur critique détecté.",
+        "10. Prêt pour l'activation du cycle suivant."
+    ],
+    "linked_pulse_ids": [
+        "PULSE-20250720-MCP-W01"
+    ],
+    "type4_required": false
+}

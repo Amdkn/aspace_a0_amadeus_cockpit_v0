@@ -1,0 +1,14 @@
+{
+  "name": "aspaceos-a0-amadeus-cockpit",
+  "version": "1.0.0",
+  "description": "Noyau de l'OS A'Space - Mode Sobriété Pure Node",
+  "main": "index.js",
+  "scripts": {
+    "validate": "node validate_contracts.js"
+  },
+  "author": "Amadeus",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {},
+  "devDependencies": {}
+}
