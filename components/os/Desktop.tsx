@@ -1,8 +1,23 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useMemo } from 'react';
 
 export default function Desktop() {
+  // Memoize particles to prevent recreation on each render
+  const particles = useMemo(() => 
+    Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      width: Math.random() * 100 + 50,
+      height: Math.random() * 100 + 50,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      x: Math.random() * 100 - 50,
+      y: Math.random() * 100 - 50,
+      duration: Math.random() * 10 + 10,
+    })), []
+  );
+
   return (
     <div className="fixed inset-0 overflow-hidden bg-solarpunk">
       {/* Animated Solarpunk Background */}
@@ -11,23 +26,23 @@ export default function Desktop() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary-700/90 via-primary-600/80 to-primary-500/70" />
         
         {/* Animated particles */}
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle) => (
           <motion.div
-            key={i}
+            key={particle.id}
             className="absolute rounded-full bg-accent-400/20"
             style={{
-              width: Math.random() * 100 + 50,
-              height: Math.random() * 100 + 50,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              width: particle.width,
+              height: particle.height,
+              left: particle.left,
+              top: particle.top,
             }}
             animate={{
-              x: [0, Math.random() * 100 - 50],
-              y: [0, Math.random() * 100 - 50],
+              x: [0, particle.x],
+              y: [0, particle.y],
               opacity: [0.1, 0.3, 0.1],
             }}
             transition={{
-              duration: Math.random() * 10 + 10,
+              duration: particle.duration,
               repeat: Infinity,
               ease: 'easeInOut',
             }}

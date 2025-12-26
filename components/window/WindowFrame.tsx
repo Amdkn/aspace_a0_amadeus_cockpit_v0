@@ -79,7 +79,7 @@ export default function WindowFrame({ window }: WindowFrameProps) {
   );
 }
 
-function WindowButton({ color, onClick, title }: { color: string; onClick: () => void; title: string }) {
+function WindowButton({ color, onClick, title }: { color: 'yellow' | 'red' | 'green'; onClick: () => void; title: string }) {
   const colors = {
     yellow: 'bg-accent-400 hover:bg-accent-400/80',
     red: 'bg-red-500 hover:bg-red-600',
