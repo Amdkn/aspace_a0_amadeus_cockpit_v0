@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A'Space OS - Financial Guard Configuration (AP2 Protocol)",
+  "description": "Budget limits and thresholds for autonomous financial oversight",
+  "version": "1.0",
+  "profiles": {
+    "development": {
+      "enabled": true,
+      "daily_token_limit": 50000,
+      "daily_api_cost_limit": 2.0,
+      "monthly_budget": 50.0,
+      "warning_threshold": 0.8,
+      "critical_threshold": 0.95,
+      "auto_cutoff": false,
+      "air_lock_on_critical": true,
+      "comment": "Development profile - lower limits, no auto-cutoff"
+    },
+    "staging": {
+      "enabled": true,
+      "daily_token_limit": 100000,
+      "daily_api_cost_limit": 5.0,
+      "monthly_budget": 100.0,
+      "warning_threshold": 0.8,
+      "critical_threshold": 0.95,
+      "auto_cutoff": true,
+      "air_lock_on_critical": true,
+      "comment": "Staging profile - standard limits with auto-cutoff"
+    },
+    "production": {
+      "enabled": true,
+      "daily_token_limit": 200000,
+      "daily_api_cost_limit": 10.0,
+      "monthly_budget": 250.0,
+      "warning_threshold": 0.75,
+      "critical_threshold": 0.90,
+      "auto_cutoff": true,
+      "air_lock_on_critical": true,
+      "comment": "Production profile - higher limits, stricter thresholds"
+    },
+    "local": {
+      "enabled": false,
+      "daily_token_limit": 1000000,
+      "daily_api_cost_limit": 0.0,
+      "monthly_budget": 0.0,
+      "warning_threshold": 1.0,
+      "critical_threshold": 1.0,
+      "auto_cutoff": false,
+      "air_lock_on_critical": false,
+      "comment": "Local Vortex (Ollama) - no financial constraints"
+    }
+  },
+  "active_profile": "development",
+  "metrics": {
+    "storage_path": "logs/financial-metrics.json",
+    "retention_days": 90,
+    "backup_enabled": true
+  },
+  "notifications": {
+    "warning": {
+      "enabled": true,
+      "channels": ["google_chat_daily_pulse", "log_file"],
+      "message": "⚠️ Budget Warning: {usage}% of daily limit reached"
+    },
+    "critical": {
+      "enabled": true,
+      "channels": ["google_chat_air_lock", "log_file"],
+      "message": "🚨 Budget Critical: {usage}% of daily limit reached - Air Lock triggered"
+    },
+    "locked": {
+      "enabled": true,
+      "channels": ["google_chat_air_lock", "log_file", "email"],
+      "message": "🔴 Budget Exceeded: System locked until approval from A0-Amadeus"
+    }
+  },
+  "air_lock": {
+    "enabled": true,
+    "approval_required_above": 0.95,
+    "auto_approve_below": 0.50,
+    "approval_timeout_hours": 24,
+    "default_action_on_timeout": "deny",
+    "comment": "Air Lock prevents spending above critical threshold without A0 approval"
+  },
+  "cost_tracking": {
+    "providers": {
+      "openai": {
+        "enabled": true,
+        "models": {
+          "gpt-4": {
+            "input_cost_per_1k": 0.03,
+            "output_cost_per_1k": 0.06
+          },
+          "gpt-3.5-turbo": {
+            "input_cost_per_1k": 0.0015,
+            "output_cost_per_1k": 0.002
+          }
+        }
+      },
+      "anthropic": {
+        "enabled": true,
+        "models": {
+          "claude-opus": {
+            "input_cost_per_1k": 0.015,
+            "output_cost_per_1k": 0.075
+          },
+          "claude-sonnet": {
+            "input_cost_per_1k": 0.003,
+            "output_cost_per_1k": 0.015
+          }
+        }
+      },
+      "google": {
+        "enabled": true,
+        "models": {
+          "gemini-pro": {
+            "input_cost_per_1k": 0.00025,
+            "output_cost_per_1k": 0.0005
+          }
+        }
+      },
+      "ollama": {
+        "enabled": false,
+        "cost_per_1k": 0.0,
+        "comment": "Local models have zero API cost"
+      }
+    }
+  },
+  "sovereignty": {
+    "prefer_local_models": true,
+    "local_fallback_on_budget_lock": true,
+    "zero_cost_threshold": 0.90,
+    "comment": "When budget usage > 90%, prefer Ollama local models"
+  }
+}

@@ -1,0 +1,60 @@
+# A'Space OS - Docker Build Exclusions
+# Purpose: Reduce Docker image size and exclude non-runtime files
+
+# Development files
+.git
+.gitignore
+.github
+*.md
+!README.md
+!SECURITY.md
+
+# Knowledge Base (documentation only)
+Knowledge Base/
+
+# Temporary and logs
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+
+# Development dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Archives and backups
+para/archives/
+*.zip
+*.tar.gz
+*.bak
+
+# Test files (exclude if not needed in runtime)
+contracts/invalid/
