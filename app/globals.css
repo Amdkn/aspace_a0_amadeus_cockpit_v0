@@ -2,9 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 🌿 A'SPACE SOLARPUNK CSS VARIABLES */
 :root {
-  --glass-bg: rgba(0, 0, 0, 0.4);
+  /* Glass morphism layers */
+  --glass-bg-light: rgba(255, 255, 255, 0.1);
+  --glass-bg-medium: rgba(0, 0, 0, 0.4);
+  --glass-bg-dark: rgba(0, 0, 0, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-glow: rgba(45, 212, 191, 0.3);
+  
+  /* Glow colors */
+  --glow-teal: 45, 212, 191;
+  --glow-amber: 251, 191, 36;
+  --glow-emerald: 16, 185, 129;
+  
+  /* Shadow depths */
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.6);
+  
+  /* Blur levels */
+  --blur-subtle: 8px;
+  --blur-medium: 16px;
+  --blur-strong: 24px;
 }
 
 * {
@@ -19,15 +39,204 @@ body {
   overflow: hidden;
 }
 
-/* Glassmorphism utility */
+/* ✨ ENHANCED GLASSMORPHISM UTILITIES */
+
+/* Standard glass */
 .glass {
-  background: var(--glass-bg);
+  background: var(--glass-bg-medium);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
 }
 
-/* Solarpunk gradients */
+/* Glass with glow border */
+.glass-glow {
+  background: var(--glass-bg-medium);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border-glow);
+  box-shadow: 0 0 20px rgba(var(--glow-teal), 0.2),
+              inset 0 0 20px rgba(var(--glow-teal), 0.05);
+}
+
+/* Light glass (less opacity) */
+.glass-light {
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dark glass (more opacity) */
+.glass-dark {
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 🌟 GLOW EFFECTS */
+
+/* Teal glow */
+.glow-teal {
+  box-shadow: 0 0 20px rgba(var(--glow-teal), 0.4),
+              0 0 40px rgba(var(--glow-teal), 0.2);
+}
+
+.glow-teal-strong {
+  box-shadow: 0 0 30px rgba(var(--glow-teal), 0.6),
+              0 0 60px rgba(var(--glow-teal), 0.3),
+              0 0 90px rgba(var(--glow-teal), 0.1);
+}
+
+/* Amber glow */
+.glow-amber {
+  box-shadow: 0 0 20px rgba(var(--glow-amber), 0.4),
+              0 0 40px rgba(var(--glow-amber), 0.2);
+}
+
+.glow-amber-strong {
+  box-shadow: 0 0 30px rgba(var(--glow-amber), 0.6),
+              0 0 60px rgba(var(--glow-amber), 0.3),
+              0 0 90px rgba(var(--glow-amber), 0.1);
+}
+
+/* Inner glow */
+.inner-glow-teal {
+  box-shadow: inset 0 0 30px rgba(var(--glow-teal), 0.2);
+}
+
+.inner-glow-amber {
+  box-shadow: inset 0 0 30px rgba(var(--glow-amber), 0.2);
+}
+
+/* 🎨 SOLARPUNK GRADIENTS */
+
 .bg-solarpunk {
   background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #2dd4bf 100%);
+}
+
+.bg-solarpunk-radial {
+  background: radial-gradient(circle at 50% 50%, #14b8a6 0%, #0f766e 50%, #042f2e 100%);
+}
+
+.bg-solar-burst {
+  background: radial-gradient(circle at center, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+}
+
+.bg-glass-shimmer {
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 200% 200%;
+  animation: shimmer 3s linear infinite;
+}
+
+/* 🌊 ORGANIC DEPTH LAYERS */
+
+.depth-layer-1 {
+  box-shadow: var(--shadow-soft);
+}
+
+.depth-layer-2 {
+  box-shadow: var(--shadow-medium),
+              0 0 10px rgba(var(--glow-teal), 0.1);
+}
+
+.depth-layer-3 {
+  box-shadow: var(--shadow-deep),
+              0 0 20px rgba(var(--glow-teal), 0.2);
+}
+
+/* Biomimetic depth (depth + glow combined) */
+.bio-depth {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5),
+              0 0 20px rgba(var(--glow-teal), 0.3),
+              inset 0 0 10px rgba(var(--glow-teal), 0.05);
+}
+
+/* 💫 TEXT GLOWS */
+
+.text-glow-teal {
+  text-shadow: 0 0 10px rgba(var(--glow-teal), 0.6),
+               0 0 20px rgba(var(--glow-teal), 0.3);
+}
+
+.text-glow-amber {
+  text-shadow: 0 0 10px rgba(var(--glow-amber), 0.6),
+               0 0 20px rgba(var(--glow-amber), 0.3);
+}
+
+/* 🔮 HOVER STATES (Organic interactions) */
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              0 0 30px rgba(var(--glow-teal), 0.3);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 30px rgba(var(--glow-teal), 0.5),
+              0 0 60px rgba(var(--glow-teal), 0.2);
+}
+
+/* 🌈 BORDER GLOWS */
+
+.border-glow-teal {
+  border: 1px solid rgba(var(--glow-teal), 0.5);
+  box-shadow: 0 0 10px rgba(var(--glow-teal), 0.2),
+              inset 0 0 10px rgba(var(--glow-teal), 0.05);
+}
+
+.border-glow-amber {
+  border: 1px solid rgba(var(--glow-amber), 0.5);
+  box-shadow: 0 0 10px rgba(var(--glow-amber), 0.2),
+              inset 0 0 10px rgba(var(--glow-amber), 0.05);
+}
+
+/* ⚡ ANIMATIONS */
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(var(--glow-teal), 0.3);
+  }
+  50% { 
+    opacity: 0.8;
+    box-shadow: 0 0 40px rgba(var(--glow-teal), 0.6);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
 }
