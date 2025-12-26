@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "id": "INT-20251226-001",
+  "created_at": "2025-12-26T06:42:36Z",
+  "created_by": "A0_ARCHITECTE",
+  "title": "Injecter Ikigai temporel (H1/H3/H10/H30/H90) dans Beth",
+  "intent_text": "Rendre Beth capable de filtrer toute action par horizons et LifeWheel, avec escalation Type 4 et handshake Rick.",
+  "domains_touched": ["LD04", "LifeCore", "Ops"],
+  "expected_energy_cost": "low",
+  "time_horizon": "12WY",
+  "risk_level": "low",
+  "constraints": ["local-first", "no-platform-dependency", "file-based-events-only"],
+  "success_criteria": [
+    "horizons.md présent",
+    "spec/agents/beth.md présent",
+    "beth_assessment généré sur intent",
+    "si Type4 alors DEC généré"
+  ],
+  "needs_type4_decision": false
+}

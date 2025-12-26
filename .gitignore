@@ -13,8 +13,18 @@ __pycache__/
 *.key
 *.pem
 
-# Logs
-logs/
+# Logs (allow structure and example files)
+logs/*
+!logs/README.md
+!logs/intents/
+!logs/decisions/
+!logs/assessments/
+!logs/orders/
+logs/intents/*
+!logs/intents/INT-20251226-001.json
+logs/decisions/.gitkeep
+logs/assessments/.gitkeep
+logs/orders/.gitkeep
 *.log
 
 # OS
