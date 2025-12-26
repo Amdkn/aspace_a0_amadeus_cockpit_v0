@@ -4,11 +4,30 @@
   "description": "Noyau de l'OS A'Space - Mode Sobriété Pure Node",
   "main": "index.js",
   "scripts": {
-    "validate": "node validate_contracts.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "validate": "node validate_contracts.cjs"
   },
   "author": "Amadeus",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {},
-  "devDependencies": {}
+  "type": "module",
+  "dependencies": {
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "framer-motion": "^12.23.26",
+    "next": "^16.1.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/typography": "^0.5.19",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  }
 }
