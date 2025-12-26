@@ -92,6 +92,9 @@ class ASpaceValidator {
             if (schema.minItems !== undefined && data.length < schema.minItems) {
                 this.addError(currentPath, `trop peu d'éléments : min ${schema.minItems}`);
             }
+            if (schema.maxItems !== undefined && data.length > schema.maxItems) {
+                this.addError(currentPath, `trop d'éléments : max ${schema.maxItems}`);
+            }
             if (schema.items) {
                 data.forEach((item, index) => {
                     this.validate(item, schema.items, `${currentPath}[${index}]`, rootContext);
@@ -99,13 +102,26 @@ class ASpaceValidator {
             }
         }
 
-        // 6. Basic String/Number constraints
+        // 6. String constraints
         if (typeof data === "string") {
             if (schema.pattern && !new RegExp(schema.pattern).test(data)) {
                 this.addError(currentPath, `format invalide (regex) : ${data}`);
             }
             if (schema.minLength !== undefined && data.length < schema.minLength) {
                 this.addError(currentPath, `trop court : min ${schema.minLength}`);
+            }
+            if (schema.maxLength !== undefined && data.length > schema.maxLength) {
+                this.addError(currentPath, `trop long : max ${schema.maxLength}`);
+            }
+        }
+
+        // 7. Number constraints
+        if (typeof data === "number") {
+            if (schema.minimum !== undefined && data < schema.minimum) {
+                this.addError(currentPath, `valeur trop basse : ${data} < minimum ${schema.minimum}`);
+            }
+            if (schema.maximum !== undefined && data > schema.maximum) {
+                this.addError(currentPath, `valeur trop haute : ${data} > maximum ${schema.maximum}`);
             }
         }
     }
@@ -122,7 +138,8 @@ class ASpaceValidator {
             }
             return current;
         }
-        return {}; // Non-local refs not supported in this sovereign validator
+        // External refs are not supported - fail explicitly for sovereignty
+        throw new Error(`$ref externe non supporté (souveraineté) : ${ref}`);
     }
 
     addError(path, message) {
@@ -131,7 +148,7 @@ class ASpaceValidator {
 }
 
 // Execution logic
-const schemasFiles = fs.readdirSync(protocolsDir).filter(f => f => f.endsWith(".json"));
+const schemaFiles = fs.readdirSync(protocolsDir).filter(f => f.endsWith(".json"));
 const examplesFiles = fs.readdirSync(examplesDir).filter(f => f.endsWith(".json"));
 
 const invalidDir = "./contracts/invalid";

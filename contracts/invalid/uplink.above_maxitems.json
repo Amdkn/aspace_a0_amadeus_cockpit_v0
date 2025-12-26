@@ -1,0 +1,23 @@
+{
+    "schema_version": "1.0",
+    "id": "UPLINK-20250101",
+    "created_at": "2025-01-01T10:00:00Z",
+    "created_by": "Jerry",
+    "week": 1,
+    "project_id": "TEST",
+    "lines": [
+        "Line 1",
+        "Line 2",
+        "Line 3",
+        "Line 4",
+        "Line 5",
+        "Line 6",
+        "Line 7",
+        "Line 8",
+        "Line 9",
+        "Line 10",
+        "Line 11"
+    ],
+    "linked_pulse_ids": [],
+    "type4_required": false
+}

@@ -17,6 +17,7 @@ A'Space OS uses a **native, zero-dependency validator** to enforce contract law.
 ### String Constraints
 - `pattern`: Regex validation
 - `minLength`: Minimum string length
+- `maxLength`: Maximum string length
 
 ### Number Constraints
 - `minimum`: Minimum value (inclusive)
@@ -35,16 +36,16 @@ A'Space OS uses a **native, zero-dependency validator** to enforce contract law.
 ### References
 - `$ref`: Internal references only (`#/$defs/...`)
 
-## ❌ Not Supported (Yet)
+## ❌ Not Supported (By Design)
 
-- `maxLength`
 - `format` (e.g., `date-time`, `email`, `uri`)
-- `oneOf`, `anyOf`, `allOf`
+- `oneOf`, `anyOf`, `allOf`, `not`
 - `patternProperties`
 - `dependencies`, `dependentSchemas`
 - External `$ref` (cross-file references)
 - `if/then/else`
-- `not`
+- `exclusiveMinimum`, `exclusiveMaximum`
+- `multipleOf`
 
 ## 🎯 Design Philosophy
 
