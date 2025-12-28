@@ -4,11 +4,24 @@
   "description": "Noyau de l'OS A'Space - Mode Sobriété Pure Node",
   "main": "index.js",
   "scripts": {
-    "validate": "node validate_contracts.js"
+    "validate": "node validate_contracts.js",
+    "build": "tsc",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:generate": "prisma generate",
+    "sync-contracts": "tsx scripts/sync-contracts.ts",
+    "db:reset": "rm -f prisma/dev.db && prisma migrate reset --force --skip-seed",
+    "test": "tsx tests/contract-guard.test.ts"
   },
   "author": "Amadeus",
   "license": "ISC",
   "type": "commonjs",
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "prisma": "^5.22.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  }
 }

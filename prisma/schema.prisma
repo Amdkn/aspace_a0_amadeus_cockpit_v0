@@ -1,0 +1,153 @@
+// This is your Prisma schema file
+// A'Space OS V2 Phoenix - Contract-First Architecture
+// Prisma is a projection layer, NOT the source of truth
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CONTRACT LEDGER (Source of Truth)
+// All database writes flow through this table
+// ============================================
+
+model Contract {
+  id            String   @id @default(cuid())
+  contractId    String   @unique // e.g., "ORD-20250714-001", "PULSE-20250720-..."
+  contractType  String   // "Order", "Pulse", "Decision", "Intent", "Uplink"
+  rawJson       String   // Complete JSON contract as text
+  status        String   // "ACCEPTED" or "REJECTED"
+  validationLog String?  // Validation errors if REJECTED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([contractType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================
+// PROJECTION TABLES (Read Models)
+// These are derived from accepted contracts
+// ============================================
+
+model Order {
+  id                String   @id @default(cuid())
+  orderId           String   @unique // ORD-20250714-001
+  schemaVersion     String
+  createdAt         DateTime
+  createdBy         String
+  projectId         String
+  cycleType         String   // "12WY", "SOB", "ADHOC"
+  cycleWeek         Int
+  rockTitle         String
+  rockDoD           String   // JSON array as string
+  tactics           String   // JSON array as string
+  constraints       String   // JSON array as string
+  escalationRules   String   // JSON array as string
+  linkedDecisionId  String?
+  notes             String?
+  ingestedAt        DateTime @default(now())
+
+  @@index([orderId])
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model Pulse {
+  id                    String   @id @default(cuid())
+  pulseId               String   @unique // PULSE-20250720-ASPACE-W01
+  schemaVersion         String
+  createdAt             DateTime
+  createdBy             String
+  projectId             String
+  week                  Int
+  signalLevel           String   // "green", "orange", "red"
+  kpiTmiCurrent         Float
+  kpiTmiTarget          Float
+  kpiTvrScore           Float
+  kpi12wyCompletionPct  Float
+  domains               String   // JSON object as string
+  type4DecisionsNeeded  String   // JSON array as string
+  notes                 String?
+  ingestedAt            DateTime @default(now())
+
+  @@index([pulseId])
+  @@index([projectId])
+  @@index([week])
+  @@index([signalLevel])
+  @@index([createdAt])
+}
+
+model Decision {
+  id                   String   @id @default(cuid())
+  decisionId           String   @unique // DEC-20250714-001
+  schemaVersion        String
+  createdAt            DateTime
+  createdBy            String
+  linkedIntentId       String
+  projectId            String?
+  signalLevel          String   // "green", "orange", "red"
+  gate                 String?  // "BETH", "RICK", "SINGULARITY", "OTHER"
+  type4Question        String
+  options              String   // JSON array as string
+  recommendation       String
+  rationale            String   // JSON array as string (10 lines max)
+  deadline             DateTime
+  a0Decision           String?  // JSON object as string (nullable)
+  ingestedAt           DateTime @default(now())
+
+  @@index([decisionId])
+  @@index([linkedIntentId])
+  @@index([signalLevel])
+  @@index([createdAt])
+}
+
+model Intent {
+  id                   String   @id @default(cuid())
+  intentId             String   @unique // INT-20250714-001
+  schemaVersion        String
+  createdAt            DateTime
+  createdBy            String
+  projectId            String?
+  title                String
+  intentText           String
+  domainsTouched       String   // JSON array as string
+  expectedEnergyCost   String   // "low", "medium", "high"
+  timeHorizon          String   // "now", "1w", "4w", "12WY", "1y", "3y", "10y"
+  riskLevel            String   // "low", "medium", "high"
+  constraints          String   // JSON array as string
+  successCriteria      String   // JSON array as string
+  needsType4Decision   Boolean
+  attachments          String?  // JSON array as string
+  notes                String?
+  ingestedAt           DateTime @default(now())
+
+  @@index([intentId])
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model Uplink {
+  id               String   @id @default(cuid())
+  uplinkId         String   @unique // UPLINK-20250721
+  schemaVersion    String
+  createdAt        DateTime
+  createdBy        String
+  week             Int?
+  projectId        String?
+  lines            String   // JSON array as string (exactly 10 lines)
+  linkedPulseIds   String   // JSON array as string
+  type4Required    Boolean
+  ingestedAt       DateTime @default(now())
+
+  @@index([uplinkId])
+  @@index([week])
+  @@index([createdAt])
+}

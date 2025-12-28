@@ -25,6 +25,7 @@ logs/intents/*
 logs/decisions/.gitkeep
 logs/assessments/.gitkeep
 logs/orders/.gitkeep
+logs/sync-*.json
 *.log
 
 # OS
@@ -43,6 +44,11 @@ desktop.ini
 dist/
 build/
 *.egg-info/
+
+# Database & Prisma
+*.db
+*.db-journal
+prisma/migrations
 
 # Temporary files
 tmp/
