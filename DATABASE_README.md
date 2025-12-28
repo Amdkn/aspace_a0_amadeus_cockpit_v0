@@ -1,389 +1,313 @@
-# A'Space OS V2 Phoenix - Contract-First Database Architecture
+# 📜 Architecture de Base de Données Souveraine — A'Space OS
 
-## Overview
+Ce document définit les spécifications techniques du **Mycélium stable**, garantissant que le système reste fonctionnel et antifragile, même en mode **Zero-Dependence**.
 
-This implementation establishes a **contract-first architecture** with **zero external dependencies**, where JSON contracts are the source of truth, and the database (Prisma + SQLite) serves as a projection layer for read-optimized access.
+## 🏗️ Principes d'Auto-Hébergement "Zero-Knowledge"
 
-## Architecture Principles
+L'architecture est conçue pour fonctionner indépendamment des services tiers (Prisma Cloud, telemetry, etc.) afin d'assurer une **souveraineté totale** sur votre infrastructure [Coolify].
 
-1. **JSON Contracts are Source of Truth**: All business logic and data originates from validated JSON files
-2. **Database is a Cache**: The database serves only as a projection/read layer for dashboards and queries
-3. **ContractGuard Middleware**: All database writes must flow through validation
-4. **Audit Trail**: Every contract write is logged in the Contract ledger with ACCEPTED/REJECTED status
-5. **Zero External Dependencies**: No calls to external services (Prisma telemetry disabled, checkpoint.prisma.io blocked)
-6. **Immutable Ledger**: SHA-256 integrity hashes ensure no manual database tampering
-7. **Air Lock Mode**: Graceful degradation when dependencies are unavailable
+### Vue d'Ensemble
 
-## Zero-Dependence Configuration
+Cette implémentation établit une **architecture contract-first** avec **zéro dépendance externe**, où les contrats JSON sont la source de vérité, et la base de données (Prisma + SQLite) sert uniquement de couche de projection pour un accès optimisé en lecture.
 
-### Environment Variables (.env)
+## 🔒 Architecture Principles (Souveraineté)
 
-```env
-# Database connection
-DATABASE_URL="file:./dev.db"
+1. **Contrats JSON = Source de Vérité**: Toute la logique métier et les données proviennent de fichiers JSON validés
+2. **Base de Données = Cache**: La base de données sert uniquement de projection/lecture pour les tableaux de bord
+3. **ContractGuard Middleware**: Le Douanier Numérique - Toutes les écritures doivent passer par la validation
+4. **Audit Trail**: Chaque écriture est enregistrée dans le ledger Contract avec statut ACCEPTED/REJECTED
+5. **Zéro Dépendance Externe**: Aucun appel à des services externes (télémétrie Prisma désactivée, checkpoint.prisma.io bloqué)
+6. **Ledger Immuable**: Les hashes SHA-256 garantissent qu'aucune modification manuelle de la base de données ne passe inaperçue
+7. **Mode Air Lock**: Dégradation gracieuse lorsque les dépendances sont indisponibles
+
+## 🛠️ Configuration de l'Environnement Souverain
+
+### 1. Isolation du Runtime Prisma (Antifragilité)
+
+Pour éviter tout blocage lié au pare-feu ou à l'absence de réseau, le moteur Prisma est configuré en mode local strict.
+
+#### Variables d'Environnement (.env)
+
+Pour activer ces paramètres sur votre terminal [Coolify], votre fichier `.env` doit contenir :
+
+```bash
+# Prisma Sovereign Config
+DATABASE_URL="file:./data/aspace_souverain.db"
 
 # Prisma Zero-Dependence Configuration (Antifragilité)
-PRISMA_SKIP_POSTINSTALL_GENERATE=1  # Disable external calls
-PRISMA_TELEMETRY_DISABLED=1          # No telemetry to Prisma servers
+PRISMA_SKIP_POSTINSTALL_GENERATE=1  # Désactive les appels externes
+PRISMA_TELEMETRY_DISABLED=1          # Aucune télémétrie vers serveurs Prisma
 
 # Air Lock Mode: Graceful degradation
-ASPACE_AIR_LOCK_MODE=false           # Set to true for read-only fallback
+ASPACE_AIR_LOCK_MODE=false           # Mettre à true pour mode lecture seule
 ```
 
-### Local Prisma Client Generation
+#### Génération Interne du Client Prisma
 
-The Prisma client is generated in `src/generated/client/` instead of `node_modules/`, making the project **portable** and **self-contained**:
+Le client Prisma est généré dans `./src/generated/client` au lieu de `node_modules` pour assurer la **portabilité du dossier**.
+
+**Configuration dans `prisma/schema.prisma`:**
 
 ```prisma
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/client"  // Local generation
+  output   = "../src/generated/client"  // Génération locale
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 ```
 
-This ensures the project can function even without global npm dependencies.
+**Offline Force**: Les appels vers `checkpoint.prisma.io` sont désactivés via les variables d'environnement.
 
-## Directory Structure
+Cela permet au projet de "tenir par lui-même" même si les dépendances globales sont absentes.
 
-```
-.
-├── prisma/
-│   ├── schema.prisma           # Database schema (projection models)
-│   └── migrations/             # SQL migration files
-├── src/
-│   └── lib/
-│       └── contract-guard.ts   # Security middleware for contract validation
-├── scripts/
-│   └── sync-contracts.ts       # Script to replay JSON contracts into DB
-├── tests/
-│   └── contract-guard.test.ts  # Unit tests for validation logic
-├── protocols/                   # JSON Schema definitions (source of truth)
-│   ├── order.schema.json
-│   ├── pulse.schema.json
-│   ├── decision.schema.json
-│   ├── intent.schema.json
-│   └── uplink.schema.json
-├── contracts/
-│   ├── examples/               # Valid contract examples
-│   └── invalid/                # Invalid contract examples (for testing)
-└── logs/                       # Audit logs from sync operations
-```
+## 🔐 ContractGuard : Le Douanier Numérique
 
-## Database Schema
+La base de données n'est jamais la source de vérité ; elle n'est qu'une **projection persistée** des contrats validés.
 
-### Contract Ledger (Source of Truth with Immutable Integrity)
+### Validation Native (Durabilité)
 
-The `Contract` table is the single source of truth for all database writes, with SHA-256 integrity hashes to prevent tampering:
-
-```prisma
-model Contract {
-  id            String   @id @default(cuid())
-  contractId    String   @unique  // e.g., "ORD-20250714-001"
-  contractType  String   // "Order", "Pulse", "Decision", "Intent", "Uplink"
-  rawJson       String   // Complete JSON contract as text
-  status        String   // "ACCEPTED" or "REJECTED"
-  validationLog String?  // Validation errors if REJECTED
-  integrityHash String   // SHA-256 hash for ledger verification
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-```
-
-**Integrity Hash Formula:**
-```
-SHA256(contractId | contractType | rawJson | status | timestamp)
-```
-
-This ensures that any manual modification of the database can be detected.
-  rawJson       String   // Complete JSON contract as text
-  status        String   // "ACCEPTED" or "REJECTED"
-  validationLog String?  // Validation errors if REJECTED
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-```
-
-### Projection Tables (Read Models)
-
-Five projection tables mirror the five contract types:
-
-1. **Order** - Execution orders from Morty to Jerry/Summer
-2. **Pulse** - Weekly business pulse from Summer to Jerry
-3. **Decision** - Type 4 decisions requiring A0 approval
-4. **Intent** - Strategic intents from A0
-5. **Uplink** - Weekly summary reports from Jerry to A0
-
-Each projection table stores flattened, queryable versions of the JSON contracts.
-
-## ContractGuard Middleware
-
-The `ContractGuard` class enforces the contract-first architecture:
+La logique de `validate_contracts.js` est intégrée comme une **librairie interne sans dépendances API externes**.
 
 ```typescript
 import ContractGuard from './src/lib/contract-guard';
 
 const guard = new ContractGuard();
-
-// Write a contract (validated automatically)
 const result = await guard.writeContract({
   contractId: 'ORD-20250714-001',
   contractType: 'Order',
   data: orderJson
 });
 
-if (result.success) {
-  // Contract was ACCEPTED and written to projection table
-} else {
-  // Contract was REJECTED with validation errors
-  console.error(result.error);
-}
+// Valide → Génère hash d'intégrité → Écrit dans ledger → Projette si accepté
 ```
 
-### Validation Flow
+### Air Lock Workflow
 
-1. **Validate**: JSON contract is validated against its JSON Schema (from `/protocols`)
-2. **Record**: Contract is written to `Contract` ledger with status ACCEPTED or REJECTED
-3. **Project**: If ACCEPTED, data is written to the appropriate projection table
-4. **Reject**: If REJECTED, validation errors are logged and no projection is created
+En cas de défaillance d'une dépendance ou d'un contrat invalide, le système bascule automatiquement en **lecture seule sécurisée**.
 
-## Scripts
-
-### Sync Contracts
-
-Replay all JSON contracts from `/contracts/examples` into the database:
+**Activation du Mode Air Lock:**
 
 ```bash
-npm run sync-contracts
-```
-
-This script:
-- Discovers all JSON files in `/contracts/examples`
-- Validates each contract via ContractGuard
-- Writes to Contract ledger + projection tables
-- Produces an audit log in `/logs`
-
-### Reset Database
-
-Reset the database and re-run migrations:
-
-```bash
-npm run db:reset
-```
-
-### Generate Prisma Client
-
-After schema changes, regenerate the Prisma client:
-
-```bash
-npm run prisma:generate
-```
-
-## Testing
-
-Run unit tests for ContractGuard validation logic:
-
-```bash
-npm test
-```
-
-Tests verify:
-- ✅ Valid contracts are ACCEPTED
-- ✅ Invalid contracts are REJECTED
-- ✅ Contract ledger records all attempts
-- ✅ Projection tables are populated for ACCEPTED contracts
-
-## Validation Rules
-
-The ContractGuard uses the same validation logic as `validate_contracts.js`:
-
-- **Type checking**: Enforces string, number, integer, boolean, array, object types
-- **Const/Enum**: Validates fixed values and allowed enumerations
-- **String constraints**: minLength, maxLength, pattern (regex)
-- **Number constraints**: minimum, maximum
-- **Array constraints**: minItems, maxItems
-- **Object constraints**: required fields, additionalProperties
-- **$ref resolution**: Supports internal JSON Schema references
-
-## Security Model
-
-### Golden Rule
-
-**The database is a cache for the Dashboard. Invalid JSON contracts must be blocked with explicit errors.**
-
-### Enforcement
-
-1. **No direct Prisma writes**: All writes must go through `ContractGuard.writeContract()`
-2. **Validation before storage**: Contracts are validated before any database mutation
-3. **Audit trail**: All attempts (valid and invalid) are recorded in the Contract ledger
-4. **Explicit errors**: Validation failures produce detailed error messages
-5. **Immutable ledger**: SHA-256 integrity hashes prevent manual database tampering
-6. **Zero external calls**: Prisma operates completely offline (telemetry disabled)
-
-### Air Lock Mode
-
-When dependencies are missing or database is unavailable, the system enters **Air Lock Mode** (read-only safe state):
-
-```typescript
-// Enable Air Lock Mode in .env
+# Dans .env
 ASPACE_AIR_LOCK_MODE=true
 ```
 
-In Air Lock Mode:
-- All write operations are blocked with warnings
-- Read operations return empty results
-- System logs degraded state
-- No crashes or errors - graceful degradation
+**Comportement en Mode Air Lock:**
+- Toutes les opérations d'écriture sont bloquées avec avertissements
+- Les opérations de lecture retournent des résultats vides gracieusement
+- Le système enregistre l'état dégradé
+- Aucun crash - dégradation gracieuse uniquement
 
-This ensures the **Mycélium remains stable** even when external dependencies fail.
+## 📊 Ledger Immuable et Audit Trail (Souveraineté)
 
-## Antifragility Features
+Chaque écriture en base de données doit laisser une trace indélébile pour garantir l'intégrité du cockpit.
 
-1. **Offline Operation**: Zero calls to external services (checkpoint.prisma.io disabled)
-2. **Local Generation**: Prisma client generated in project directory, not node_modules
-3. **Portable Database**: SQLite file-based, can be moved with project
-4. **Hash Verification**: Detect any manual database modifications
-5. **Air Lock Fallback**: Graceful degradation when dependencies unavailable
-6. **Native Validation**: All validation logic embedded (no API calls)
+### Table Contract : Registre "Append-only"
 
-## Usage Examples
+La table `Contract` est la source unique de vérité pour toutes les écritures en base de données, avec des hashes SHA-256 pour empêcher toute manipulation:
 
-### Example 1: Sync a new contract
-
-```typescript
-import ContractGuard from './src/lib/contract-guard';
-import * as fs from 'fs';
-
-const guard = new ContractGuard();
-const orderData = JSON.parse(fs.readFileSync('./my-order.json', 'utf-8'));
-
-const result = await guard.writeContract({
-  contractId: orderData.id,
-  contractType: 'Order',
-  data: orderData
-});
-
-if (!result.success) {
-  console.error('Contract rejected:', result.error);
+```prisma
+model Contract {
+  id            String   @id @default(cuid())
+  contractId    String   @unique  // "ORD-20250714-001"
+  contractType  String   // "Order", "Pulse", "Decision", "Intent", "Uplink"
+  rawJson       String   // JSON complet en tant que texte
+  status        String   // "ACCEPTED" ou "REJECTED"
+  validationLog String?  // Erreurs de validation si REJECTED
+  integrityHash String   // Hash SHA-256 pour vérification d'intégrité
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 ```
 
-### Example 2: Check contract status
+### Preuve d'Intégrité
 
-```typescript
-const status = await guard.getContractStatus('ORD-20250714-001');
-console.log(status); 
-// { status: 'ACCEPTED', validationLog: null }
+Chaque entrée inclut un **hash SHA-256 généré localement**, empêchant toute modification manuelle de la base SQLite sans détection.
+
+**Formule du Hash d'Intégrité:**
+```
+SHA256(contractId | contractType | rawJson | status | timestamp)
 ```
 
-### Example 3: Verify integrity hash
+Cela garantit que toute modification manuelle de la base de données peut être détectée.
+
+### Vérification de l'Intégrité
 
 ```typescript
 const guard = new ContractGuard();
 
-// Get contract from database
-const contract = await guard.getContractStatus('ORD-20250714-001');
-
-// Verify integrity (example - you'd need the original data)
+// Vérifier l'intégrité (audit)
 const isValid = guard.verifyIntegrityHash(
   contractId,
   contractType,
   rawJson,
   status,
   timestamp,
-  contract.integrityHash
+  expectedHash
 );
 
 if (!isValid) {
-  console.error('⚠️ Database tampering detected!');
+  console.error('⚠️ Manipulation de la base de données détectée!');
 }
 ```
 
-### Example 4: List contracts
+## 🗂️ Structure du Projet Souverain
 
-```typescript
-const contracts = await guard.listContracts({
-  contractType: 'Order',
-  status: 'ACCEPTED',
-  limit: 10
-});
+```
+.
+├── data/                           # Données persistantes (Coolify)
+│   └── aspace_souverain.db        # Base SQLite souveraine
+├── prisma/
+│   ├── schema.prisma              # Schéma de base de données
+│   └── migrations/                # Fichiers de migration SQL
+├── src/
+│   ├── generated/
+│   │   └── client/                # Client Prisma généré localement (portable)
+│   └── lib/
+│       └── contract-guard.ts      # Middleware de sécurité (Le Gatekeeper)
+├── scripts/
+│   └── sync-contracts.ts          # Script pour rejouer les contrats JSON dans DB
+├── tests/
+│   └── contract-guard.test.ts     # Tests unitaires de validation
+├── protocols/                      # Définitions JSON Schema (source de vérité)
+│   ├── order.schema.json
+│   ├── pulse.schema.json
+│   ├── decision.schema.json
+│   ├── intent.schema.json
+│   └── uplink.schema.json
+├── contracts/
+│   ├── examples/                  # Exemples de contrats valides
+│   └── invalid/                   # Exemples de contrats invalides (tests)
+└── logs/                          # Logs d'audit des opérations de sync
 ```
 
-## Audit Logs
+## 5 Tables de Projection (Read Models)
 
-Each sync operation produces an audit log in `/logs`:
+Cinq tables de projection reflètent les cinq types de contrats:
 
-```json
-{
-  "timestamp": "2025-12-28T06:30:00.000Z",
-  "result": {
-    "total": 5,
-    "accepted": 5,
-    "rejected": 0,
-    "errors": 0,
-    "details": [
-      {
-        "file": "order.example.json",
-        "contractId": "ORD-20250714-001",
-        "contractType": "Order",
-        "status": "ACCEPTED"
-      }
-    ]
-  }
-}
+1. **Order** - Ordres d'exécution de Morty vers Jerry/Summer
+2. **Pulse** - Pulse métier hebdomadaire de Summer vers Jerry
+3. **Decision** - Décisions Type 4 nécessitant l'approbation A0
+4. **Intent** - Intentions stratégiques de A0
+5. **Uplink** - Rapports de synthèse hebdomadaires de Jerry vers A0
+
+Chaque table de projection stocke des versions aplaties et interrogeables des contrats JSON. Les tableaux JSON sont stockés en tant que texte, indexés sur les champs clés.
+
+## 🚀 Scripts de Synchronisation
+
+### Rejouer les Contrats JSON
+
+```bash
+npm run sync-contracts
+# Valide 5 exemples → 5 ACCEPTED, 0 REJECTED
+# Produit un log d'audit dans /logs/sync-*.json
+# Génère des hashes d'intégrité pour toutes les entrées
 ```
 
-## Migration Strategy
+Le script de synchronisation :
+- Découvre tous les fichiers JSON dans `/contracts/examples`
+- Valide chaque contrat via ContractGuard
+- Écrit dans le ledger Contract + tables de projection
+- Produit un log d'audit horodaté
 
-### Initial Setup
+### Réinitialiser la Base de Données
 
-1. Install dependencies: `npm install`
-2. Run migrations: `npm run prisma:migrate`
-3. Sync contracts: `npm run sync-contracts`
-4. Run tests: `npm test`
-
-### Adding New Contract Types
-
-1. Create JSON Schema in `/protocols`
-2. Add example contracts in `/contracts/examples`
-3. Update `prisma/schema.prisma` with new projection model
-4. Run migration: `npm run prisma:migrate`
-5. Update `ContractGuard.writeProjection()` to handle new type
-6. Regenerate client: `npm run prisma:generate`
-7. Test: `npm test`
-
-## FAQ
-
-**Q: Can I write directly to projection tables?**  
-A: No. All writes must go through `ContractGuard.writeContract()`.
-
-**Q: What happens if a contract is rejected?**  
-A: It's recorded in the Contract ledger with status=REJECTED and validation errors are logged. No projection is created.
-
-**Q: Can I modify a contract after it's accepted?**  
-A: Contracts are immutable. To update, create a new contract with a new ID.
-
-**Q: How do I query the database?**  
-A: Use Prisma Client to query projection tables for read-optimized access:
-```typescript
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-const orders = await prisma.order.findMany({ where: { projectId: 'ASPACE-MCP-V1' } });
+```bash
+npm run db:reset
 ```
 
-**Q: What if the validation logic changes?**  
-A: Update the JSON schemas in `/protocols` and the validation logic in `ContractGuard`. Existing contracts remain unchanged (immutable).
+### Générer le Client Prisma
 
-## Success Metrics
+```bash
+npm run prisma:generate
+```
 
-✅ All valid contracts (5/5) successfully ingested  
-✅ All invalid contracts (11/11) correctly rejected  
-✅ Contract ledger populated with all attempts  
-✅ Projection tables populated for accepted contracts  
-✅ All tests passing (22/22)  
-✅ Audit logs generated for all operations
+## 🧪 Tests et Validation
+
+```bash
+npm test
+```
+
+22 tests vérifient:
+- Contrats valides acceptés (5/5) avec hashes d'intégrité
+- Contrats invalides rejetés (11/11)
+- Le ledger enregistre toutes les tentatives avec détection de manipulation
+- Les tables de projection sont peuplées correctement
+- Fonctionnement offline confirmé
+
+Toute la validation est effectuée par les patterns existants de `validate_contracts.js` - aucune nouvelle dépendance.
+
+## 📊 Garanties du Mycélium
+
+✅ **Indépendance**: Fonctionnement garanti sans connexion au cloud de l'éditeur  
+✅ **Souveraineté**: 100% des écritures sont validées par le [Gatekeeper] interne  
+✅ **Cohérence**: Structure de données identique pour [Gemini CLI], Jules ou Codex  
+✅ **Antifragilité**: Dégradation gracieuse via Mode Air Lock  
+✅ **Durabilité**: Ledger immuable avec détection de manipulation  
+✅ **Portabilité**: Structure de projet auto-contenue
+
+## 🔧 Dépannage
+
+### Problème: "Client Prisma introuvable"
+
+**Cause**: Client non généré dans le répertoire local.
+
+**Solution**:
+```bash
+npx prisma generate
+```
+
+### Problème: "Impossible de se connecter à la base de données"
+
+**Cause**: Fichier de base de données manquant ou Mode Air Lock activé.
+
+**Solution**:
+```bash
+# Vérifier le Mode Air Lock
+grep ASPACE_AIR_LOCK_MODE .env
+
+# Régénérer la base de données
+npm run db:reset
+npm run sync-contracts
+```
+
+### Problème: "Appels externes détectés"
+
+**Cause**: Variables d'environnement non chargées.
+
+**Solution**:
+```bash
+# Vérifier que .env existe
+cat .env
+
+# S'assurer que les variables sont définies
+export PRISMA_TELEMETRY_DISABLED=1
+export PRISMA_SKIP_POSTINSTALL_GENERATE=1
+```
+
+## 📚 Documentation Complémentaire
+
+- **ZERO_DEPENDENCE.md** - Guide complet de l'architecture antifragile
+- **validate_contracts.js** - Validateur JSON Schema sans dépendance
+- **prisma/schema.prisma** - Configuration de génération du client local
+- **.env** - Variables d'environnement pour souveraineté
+- **src/lib/contract-guard.ts** - Implémentation du Mode Air Lock
+
+## 🎯 Métriques de Succès
+
+✅ **Zéro Appel Externe**: Aucun trafic réseau vers les serveurs Prisma  
+✅ **Portable**: Le projet fonctionne dans n'importe quel environnement avec Node.js  
+✅ **Antifragile**: Dégradation gracieuse lorsque les dépendances échouent  
+✅ **Inviolable**: Les hashes d'intégrité détectent les modifications de base de données  
+✅ **Auto-Contenu**: Toute la logique de validation est embarquée  
+✅ **Offline-First**: Fonctionne sans connectivité Internet  
 
 ---
 
-**Status**: ✨ Implementation Complete  
-**Version**: V2 Phoenix  
-**Date**: 2025-12-28
+**Statut**: ✨ Architecture Souveraine Opérationnelle  
+**La Loi est exécutée. Le Mycélium est stable.** 🌿  
+**L'autonomie est garantie. La souveraineté est préservée.** 🏛️
