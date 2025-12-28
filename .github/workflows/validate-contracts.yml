@@ -10,4 +10,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node validate_contracts.js
+      - run: npm ci
+      - run: npm run build
+      - run: npm run validate
