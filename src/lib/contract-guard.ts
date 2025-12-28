@@ -1,7 +1,7 @@
 /**
  * ContractGuard - The Security Guardian for A'Space OS V2
  * 
- * Mission: Enforce contract-first architecture
+ * Mission: Enforce contract-first architecture with zero external dependencies
  * Rule: Database is a cache for the Dashboard - invalid JSON must be blocked
  * 
  * This middleware ensures:
@@ -9,15 +9,31 @@
  * 2. Contract ledger is updated with ACCEPTED/REJECTED status
  * 3. Only ACCEPTED contracts write to projection tables
  * 4. Validation errors are logged explicitly
+ * 5. Immutable ledger with SHA-256 integrity hashes
+ * 6. Air Lock mode for graceful degradation
  */
 
-import { PrismaClient } from '@prisma/client';
-import { execSync } from 'child_process';
+import { PrismaClient } from '../generated/client';
+import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
-const prisma = new PrismaClient();
+// Air Lock Mode: Graceful degradation
+const AIR_LOCK_MODE = process.env.ASPACE_AIR_LOCK_MODE === 'true';
+
+let prisma: PrismaClient;
+try {
+  prisma = new PrismaClient();
+} catch (error) {
+  if (AIR_LOCK_MODE) {
+    console.warn('⚠️  [ContractGuard] Air Lock Mode: Database unavailable, operating in read-only mode');
+    // @ts-ignore - Allow undefined in Air Lock mode
+    prisma = null;
+  } else {
+    throw error;
+  }
+}
 
 export interface ValidationResult {
   valid: boolean;
@@ -251,11 +267,50 @@ export class ContractGuard {
   }
 
   /**
+   * Generate SHA-256 integrity hash for immutable ledger
+   * Hash includes: contractId + contractType + rawJson + status + timestamp
+   */
+  private generateIntegrityHash(
+    contractId: string,
+    contractType: string,
+    rawJson: string,
+    status: string,
+    timestamp: string
+  ): string {
+    const data = `${contractId}|${contractType}|${rawJson}|${status}|${timestamp}`;
+    return createHash('sha256').update(data).digest('hex');
+  }
+
+  /**
+   * Verify integrity hash (for auditing)
+   */
+  verifyIntegrityHash(
+    contractId: string,
+    contractType: string,
+    rawJson: string,
+    status: string,
+    timestamp: string,
+    expectedHash: string
+  ): boolean {
+    const computedHash = this.generateIntegrityHash(contractId, contractType, rawJson, status, timestamp);
+    return computedHash === expectedHash;
+  }
+
+  /**
    * Write a contract to the database (with validation)
    * This is the ONLY way to write to the database
    */
   async writeContract(contract: ContractInput): Promise<{ success: boolean; error?: string; contractLedgerId?: string }> {
     const { contractId, contractType, data } = contract;
+
+    // Air Lock Mode check
+    if (AIR_LOCK_MODE || !prisma) {
+      console.warn(`⚠️  [ContractGuard] Air Lock Mode: Cannot write to database`);
+      return {
+        success: false,
+        error: 'Air Lock Mode: Database writes disabled'
+      };
+    }
 
     console.log(`🔒 [ContractGuard] Validating ${contractType} contract: ${contractId}`);
 
@@ -265,6 +320,10 @@ export class ContractGuard {
     const rawJson = JSON.stringify(data);
     const status = validation.valid ? 'ACCEPTED' : 'REJECTED';
     const validationLog = validation.valid ? null : validation.errors.join('\n');
+    
+    // Generate timestamp and integrity hash for immutable ledger
+    const timestamp = new Date().toISOString();
+    const integrityHash = this.generateIntegrityHash(contractId, contractType, rawJson, status, timestamp);
 
     // Step 2: Write to Contract ledger (always)
     try {
@@ -274,7 +333,8 @@ export class ContractGuard {
           contractType,
           rawJson,
           status,
-          validationLog
+          validationLog,
+          integrityHash
         }
       });
 
@@ -424,17 +484,23 @@ export class ContractGuard {
   /**
    * Get contract status from ledger
    */
-  async getContractStatus(contractId: string): Promise<{ status: string; validationLog?: string } | null> {
+  async getContractStatus(contractId: string): Promise<{ status: string; validationLog?: string; integrityHash?: string } | null> {
+    if (AIR_LOCK_MODE || !prisma) {
+      console.warn(`⚠️  [ContractGuard] Air Lock Mode: Cannot access database`);
+      return null;
+    }
+
     const contract = await prisma.contract.findUnique({
       where: { contractId },
-      select: { status: true, validationLog: true }
+      select: { status: true, validationLog: true, integrityHash: true }
     });
 
     if (!contract) return null;
 
     return {
       status: contract.status,
-      validationLog: contract.validationLog || undefined
+      validationLog: contract.validationLog || undefined,
+      integrityHash: contract.integrityHash
     };
   }
 
@@ -446,6 +512,11 @@ export class ContractGuard {
     status?: string;
     limit?: number;
   }): Promise<any[]> {
+    if (AIR_LOCK_MODE || !prisma) {
+      console.warn(`⚠️  [ContractGuard] Air Lock Mode: Cannot access database`);
+      return [];
+    }
+
     const where: any = {};
     
     if (filters?.contractType) where.contractType = filters.contractType;

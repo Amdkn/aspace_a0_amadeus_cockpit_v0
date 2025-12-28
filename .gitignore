@@ -49,6 +49,7 @@ build/
 *.db
 *.db-journal
 prisma/migrations
+src/generated/
 
 # Temporary files
 tmp/

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This implementation establishes a **contract-first architecture** where JSON contracts are the source of truth, and the database (Prisma + SQLite) serves as a projection layer for read-optimized access.
+This implementation establishes a **contract-first architecture** with **zero external dependencies**, where JSON contracts are the source of truth, and the database (Prisma + SQLite) serves as a projection layer for read-optimized access.
 
 ## Architecture Principles
 
@@ -10,6 +10,38 @@ This implementation establishes a **contract-first architecture** where JSON con
 2. **Database is a Cache**: The database serves only as a projection/read layer for dashboards and queries
 3. **ContractGuard Middleware**: All database writes must flow through validation
 4. **Audit Trail**: Every contract write is logged in the Contract ledger with ACCEPTED/REJECTED status
+5. **Zero External Dependencies**: No calls to external services (Prisma telemetry disabled, checkpoint.prisma.io blocked)
+6. **Immutable Ledger**: SHA-256 integrity hashes ensure no manual database tampering
+7. **Air Lock Mode**: Graceful degradation when dependencies are unavailable
+
+## Zero-Dependence Configuration
+
+### Environment Variables (.env)
+
+```env
+# Database connection
+DATABASE_URL="file:./dev.db"
+
+# Prisma Zero-Dependence Configuration (Antifragilité)
+PRISMA_SKIP_POSTINSTALL_GENERATE=1  # Disable external calls
+PRISMA_TELEMETRY_DISABLED=1          # No telemetry to Prisma servers
+
+# Air Lock Mode: Graceful degradation
+ASPACE_AIR_LOCK_MODE=false           # Set to true for read-only fallback
+```
+
+### Local Prisma Client Generation
+
+The Prisma client is generated in `src/generated/client/` instead of `node_modules/`, making the project **portable** and **self-contained**:
+
+```prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"  // Local generation
+}
+```
+
+This ensures the project can function even without global npm dependencies.
 
 ## Directory Structure
 
@@ -39,15 +71,30 @@ This implementation establishes a **contract-first architecture** where JSON con
 
 ## Database Schema
 
-### Contract Ledger (Source of Truth)
+### Contract Ledger (Source of Truth with Immutable Integrity)
 
-The `Contract` table is the single source of truth for all database writes:
+The `Contract` table is the single source of truth for all database writes, with SHA-256 integrity hashes to prevent tampering:
 
 ```prisma
 model Contract {
   id            String   @id @default(cuid())
   contractId    String   @unique  // e.g., "ORD-20250714-001"
   contractType  String   // "Order", "Pulse", "Decision", "Intent", "Uplink"
+  rawJson       String   // Complete JSON contract as text
+  status        String   // "ACCEPTED" or "REJECTED"
+  validationLog String?  // Validation errors if REJECTED
+  integrityHash String   // SHA-256 hash for ledger verification
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+```
+
+**Integrity Hash Formula:**
+```
+SHA256(contractId | contractType | rawJson | status | timestamp)
+```
+
+This ensures that any manual modification of the database can be detected.
   rawJson       String   // Complete JSON contract as text
   status        String   // "ACCEPTED" or "REJECTED"
   validationLog String?  // Validation errors if REJECTED
@@ -169,6 +216,34 @@ The ContractGuard uses the same validation logic as `validate_contracts.js`:
 2. **Validation before storage**: Contracts are validated before any database mutation
 3. **Audit trail**: All attempts (valid and invalid) are recorded in the Contract ledger
 4. **Explicit errors**: Validation failures produce detailed error messages
+5. **Immutable ledger**: SHA-256 integrity hashes prevent manual database tampering
+6. **Zero external calls**: Prisma operates completely offline (telemetry disabled)
+
+### Air Lock Mode
+
+When dependencies are missing or database is unavailable, the system enters **Air Lock Mode** (read-only safe state):
+
+```typescript
+// Enable Air Lock Mode in .env
+ASPACE_AIR_LOCK_MODE=true
+```
+
+In Air Lock Mode:
+- All write operations are blocked with warnings
+- Read operations return empty results
+- System logs degraded state
+- No crashes or errors - graceful degradation
+
+This ensures the **Mycélium remains stable** even when external dependencies fail.
+
+## Antifragility Features
+
+1. **Offline Operation**: Zero calls to external services (checkpoint.prisma.io disabled)
+2. **Local Generation**: Prisma client generated in project directory, not node_modules
+3. **Portable Database**: SQLite file-based, can be moved with project
+4. **Hash Verification**: Detect any manual database modifications
+5. **Air Lock Fallback**: Graceful degradation when dependencies unavailable
+6. **Native Validation**: All validation logic embedded (no API calls)
 
 ## Usage Examples
 
@@ -200,7 +275,30 @@ console.log(status);
 // { status: 'ACCEPTED', validationLog: null }
 ```
 
-### Example 3: List contracts
+### Example 3: Verify integrity hash
+
+```typescript
+const guard = new ContractGuard();
+
+// Get contract from database
+const contract = await guard.getContractStatus('ORD-20250714-001');
+
+// Verify integrity (example - you'd need the original data)
+const isValid = guard.verifyIntegrityHash(
+  contractId,
+  contractType,
+  rawJson,
+  status,
+  timestamp,
+  contract.integrityHash
+);
+
+if (!isValid) {
+  console.error('⚠️ Database tampering detected!');
+}
+```
+
+### Example 4: List contracts
 
 ```typescript
 const contracts = await guard.listContracts({

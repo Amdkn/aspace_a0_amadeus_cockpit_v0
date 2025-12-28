@@ -4,6 +4,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -23,6 +24,7 @@ model Contract {
   rawJson       String   // Complete JSON contract as text
   status        String   // "ACCEPTED" or "REJECTED"
   validationLog String?  // Validation errors if REJECTED
+  integrityHash String   // SHA-256 hash for immutable ledger verification
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
