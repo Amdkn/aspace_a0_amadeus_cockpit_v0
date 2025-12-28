@@ -17,7 +17,7 @@ import { PrismaClient } from '../generated/client';
 import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
+import { validateAgainstSchemaFile, ValidationResult } from './aspace-validator';
 
 // Air Lock Mode: Graceful degradation
 const AIR_LOCK_MODE = process.env.ASPACE_AIR_LOCK_MODE === 'true';
@@ -35,11 +35,6 @@ try {
   }
 }
 
-export interface ValidationResult {
-  valid: boolean;
-  errors: string[];
-}
-
 export interface ContractInput {
   contractId: string;
   contractType: 'Order' | 'Pulse' | 'Decision' | 'Intent' | 'Uplink';
@@ -48,16 +43,14 @@ export interface ContractInput {
 
 export class ContractGuard {
   private protocolsDir: string;
-  private validatorScript: string;
 
   constructor() {
     this.protocolsDir = path.join(process.cwd(), 'protocols');
-    this.validatorScript = path.join(process.cwd(), 'validate_contracts.js');
   }
 
   /**
    * Validate a contract against its JSON schema
-   * Uses the zero-dependency validator from validate_contracts.js
+   * Uses the shared zero-dependency validator from aspace-validator.ts
    */
   async validateContract(contract: ContractInput): Promise<ValidationResult> {
     const { contractType, data } = contract;
@@ -87,183 +80,8 @@ export class ContractGuard {
       };
     }
 
-    // Write contract to temporary file for validation
-    const tmpDir = os.tmpdir();
-    const tmpFile = path.join(tmpDir, `contract-${Date.now()}-${Math.random().toString(36).substring(7)}.json`);
-    
-    try {
-      fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2));
-
-      // Load and execute validation using the ASpaceValidator from validate_contracts.js
-      const validationResult = this.runValidation(data, schemaPath);
-      
-      // Clean up temp file
-      fs.unlinkSync(tmpFile);
-
-      return validationResult;
-    } catch (error) {
-      // Clean up temp file on error
-      if (fs.existsSync(tmpFile)) {
-        fs.unlinkSync(tmpFile);
-      }
-
-      return {
-        valid: false,
-        errors: [`Validation error: ${error instanceof Error ? error.message : String(error)}`]
-      };
-    }
-  }
-
-  /**
-   * Run validation using the ASpaceValidator logic
-   * This replicates the validation from validate_contracts.js
-   */
-  private runValidation(data: any, schemaPath: string): ValidationResult {
-    try {
-      const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
-      const errors: string[] = [];
-
-      // Import the validation logic (simplified version)
-      this.validate(data, schema, 'Root', schema, errors);
-
-      return {
-        valid: errors.length === 0,
-        errors
-      };
-    } catch (error) {
-      return {
-        valid: false,
-        errors: [`Schema validation failed: ${error instanceof Error ? error.message : String(error)}`]
-      };
-    }
-  }
-
-  /**
-   * Validation logic (simplified from validate_contracts.js)
-   */
-  private validate(
-    data: any,
-    schema: any,
-    currentPath: string,
-    rootContext: any,
-    errors: string[]
-  ): void {
-    if (!schema) return;
-
-    // Dereference $ref if present
-    if (schema.$ref) {
-      try {
-        const resolved = this.resolveRef(schema.$ref, rootContext);
-        schema = { ...resolved, ...schema };
-        delete schema.$ref;
-      } catch (e) {
-        errors.push(`[${currentPath}] Reference error: ${e instanceof Error ? e.message : String(e)}`);
-        return;
-      }
-    }
-
-    if (!schema || typeof schema !== 'object') return;
-
-    // Type checking
-    if (schema.type) {
-      const actualType = Array.isArray(data) ? 'array' : (data === null ? 'null' : typeof data);
-      let expectedType = schema.type;
-
-      if (expectedType === 'integer') expectedType = 'number';
-
-      if (expectedType === 'number' && typeof data === 'number') {
-        if (schema.type === 'integer' && !Number.isInteger(data)) {
-          errors.push(`[${currentPath}] Expected integer, received float ${data}`);
-        }
-      } else if (actualType !== expectedType) {
-        errors.push(`[${currentPath}] Invalid type: expected ${schema.type}, received ${actualType}`);
-        return;
-      }
-    }
-
-    // Const & Enum
-    if (schema.const !== undefined && data !== schema.const) {
-      errors.push(`[${currentPath}] Invalid const value: expected ${schema.const}, received ${JSON.stringify(data)}`);
-    }
-    if (schema.enum && !schema.enum.includes(data)) {
-      errors.push(`[${currentPath}] Value not in enum: received ${JSON.stringify(data)}, expected one of [${schema.enum.join(', ')}]`);
-    }
-
-    // Object validation
-    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
-      const properties = schema.properties || {};
-      const required = schema.required || [];
-
-      required.forEach((field: string) => {
-        if (data[field] === undefined) {
-          errors.push(`[${currentPath}] Missing required field: ${field}`);
-        }
-      });
-
-      Object.keys(data).forEach((key) => {
-        if (properties[key]) {
-          this.validate(data[key], properties[key], `${currentPath}.${key}`, rootContext, errors);
-        } else if (schema.additionalProperties === false) {
-          errors.push(`[${currentPath}] Property not allowed: ${key}`);
-        }
-      });
-    }
-
-    // Array validation
-    if (Array.isArray(data)) {
-      if (schema.minItems !== undefined && data.length < schema.minItems) {
-        errors.push(`[${currentPath}] Too few elements: min ${schema.minItems}`);
-      }
-      if (schema.maxItems !== undefined && data.length > schema.maxItems) {
-        errors.push(`[${currentPath}] Too many elements: max ${schema.maxItems}`);
-      }
-      if (schema.items) {
-        data.forEach((item, index) => {
-          this.validate(item, schema.items, `${currentPath}[${index}]`, rootContext, errors);
-        });
-      }
-    }
-
-    // String constraints
-    if (typeof data === 'string') {
-      if (schema.pattern && !new RegExp(schema.pattern).test(data)) {
-        errors.push(`[${currentPath}] Invalid format (regex): ${data}`);
-      }
-      if (schema.minLength !== undefined && data.length < schema.minLength) {
-        errors.push(`[${currentPath}] Too short: min ${schema.minLength}`);
-      }
-      if (schema.maxLength !== undefined && data.length > schema.maxLength) {
-        errors.push(`[${currentPath}] Too long: max ${schema.maxLength}`);
-      }
-    }
-
-    // Number constraints
-    if (typeof data === 'number') {
-      if (schema.minimum !== undefined && data < schema.minimum) {
-        errors.push(`[${currentPath}] Value too low: ${data} < minimum ${schema.minimum}`);
-      }
-      if (schema.maximum !== undefined && data > schema.maximum) {
-        errors.push(`[${currentPath}] Value too high: ${data} > maximum ${schema.maximum}`);
-      }
-    }
-  }
-
-  /**
-   * Resolve JSON Schema $ref
-   */
-  private resolveRef(ref: string, rootSchema: any): any {
-    if (ref.startsWith('#/')) {
-      const parts = ref.split('/').slice(1);
-      let current = rootSchema;
-      for (const part of parts) {
-        if (current[part] === undefined) {
-          throw new Error(`Unresolved reference: ${ref}`);
-        }
-        current = current[part];
-      }
-      return current;
-    }
-    throw new Error(`External $ref not supported: ${ref}`);
+    // Use shared validator
+    return validateAgainstSchemaFile(data, schemaPath);
   }
 
   /**
