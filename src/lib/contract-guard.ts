@@ -317,13 +317,13 @@ export class ContractGuard {
     // Step 1: Validate contract
     const validation = await this.validateContract(contract);
 
-    const rawJson = JSON.stringify(data);
     const status = validation.valid ? 'ACCEPTED' : 'REJECTED';
     const validationLog = validation.valid ? null : validation.errors.join('\n');
     
     // Generate timestamp and integrity hash for immutable ledger
     const timestamp = new Date().toISOString();
-    const integrityHash = this.generateIntegrityHash(contractId, contractType, rawJson, status, timestamp);
+    const rawJsonString = JSON.stringify(data);
+    const integrityHash = this.generateIntegrityHash(contractId, contractType, rawJsonString, status, timestamp);
 
     // Step 2: Write to Contract ledger (always)
     try {
@@ -331,7 +331,7 @@ export class ContractGuard {
         data: {
           contractId,
           contractType,
-          rawJson,
+          rawJson: data, // Store as JSON object (not stringified)
           status,
           validationLog,
           integrityHash
@@ -383,10 +383,10 @@ export class ContractGuard {
             cycleType: data.cycle.type,
             cycleWeek: data.cycle.week,
             rockTitle: data.rock.title,
-            rockDoD: JSON.stringify(data.rock.definition_of_done),
-            tactics: JSON.stringify(data.tactics),
-            constraints: JSON.stringify(data.constraints),
-            escalationRules: JSON.stringify(data.escalation_rules),
+            rockDoD: data.rock.definition_of_done, // Store as JSON
+            tactics: data.tactics, // Store as JSON
+            constraints: data.constraints, // Store as JSON
+            escalationRules: data.escalation_rules, // Store as JSON
             linkedDecisionId: data.linked_decision_id || null,
             notes: data.notes || null
           }
@@ -407,8 +407,8 @@ export class ContractGuard {
             kpiTmiTarget: data.kpi.tmi_target,
             kpiTvrScore: data.kpi.tvr_score,
             kpi12wyCompletionPct: data.kpi?.['12wy_completion_pct'] || 0,
-            domains: JSON.stringify(data.domains),
-            type4DecisionsNeeded: JSON.stringify(data.type4_decisions_needed),
+            domains: data.domains, // Store as JSON
+            type4DecisionsNeeded: data.type4_decisions_needed, // Store as JSON
             notes: data.notes || null
           }
         });
@@ -426,11 +426,11 @@ export class ContractGuard {
             signalLevel: data.signal_level,
             gate: data.gate || null,
             type4Question: data.type4_question,
-            options: JSON.stringify(data.options),
+            options: data.options, // Store as JSON
             recommendation: data.recommendation,
-            rationale: JSON.stringify(data.rationale_10_lines_max),
+            rationale: data.rationale_10_lines_max, // Store as JSON
             deadline: new Date(data.deadline),
-            a0Decision: data.a0_decision ? JSON.stringify(data.a0_decision) : null
+            a0Decision: data.a0_decision || null // Store as JSON or null
           }
         });
         break;
@@ -445,14 +445,14 @@ export class ContractGuard {
             projectId: data.project_id || null,
             title: data.title,
             intentText: data.intent_text,
-            domainsTouched: JSON.stringify(data.domains_touched),
+            domainsTouched: data.domains_touched, // Store as JSON
             expectedEnergyCost: data.expected_energy_cost,
             timeHorizon: data.time_horizon,
             riskLevel: data.risk_level,
-            constraints: JSON.stringify(data.constraints),
-            successCriteria: JSON.stringify(data.success_criteria),
+            constraints: data.constraints, // Store as JSON
+            successCriteria: data.success_criteria, // Store as JSON
             needsType4Decision: data.needs_type4_decision,
-            attachments: data.attachments ? JSON.stringify(data.attachments) : null,
+            attachments: data.attachments || null, // Store as JSON or null
             notes: data.notes || null
           }
         });
@@ -467,8 +467,8 @@ export class ContractGuard {
             createdBy: data.created_by,
             week: data.week || null,
             projectId: data.project_id || null,
-            lines: JSON.stringify(data.lines),
-            linkedPulseIds: JSON.stringify(data.linked_pulse_ids),
+            lines: data.lines, // Store as JSON
+            linkedPulseIds: data.linked_pulse_ids, // Store as JSON
             type4Required: data.type4_required
           }
         });
