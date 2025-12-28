@@ -95,7 +95,7 @@ NODE_ENV=staging
 
 1. **Create Application in Coolify**
    - Type: Docker
-   - Repository: `https://github.com/Amdkn/aspace_a0_amadeus_cockpit_v0`
+   - Repository: `https://github.com/YOUR_USERNAME/aspace_a0_amadeus_cockpit_v0` (replace with your fork)
    - Branch: `main` or your deployment branch
 
 2. **Configure PostgreSQL Service**
@@ -331,10 +331,10 @@ GET /contracts?status=ACCEPTED&type=Order
 
 ## 14. Support & References
 
-- **Repository:** https://github.com/Amdkn/aspace_a0_amadeus_cockpit_v0
-- **Issues:** https://github.com/Amdkn/aspace_a0_amadeus_cockpit_v0/issues
-- **Prisma Docs:** https://www.prisma.io/docs
-- **Coolify Docs:** https://coolify.io/docs
+- **Repository**: https://github.com/YOUR_USERNAME/aspace_a0_amadeus_cockpit_v0 (replace with your fork)
+- **Issues**: GitHub Issues page
+- **Prisma Docs**: https://www.prisma.io/docs
+- **Coolify Docs**: https://coolify.io/docs
 
 ---
 

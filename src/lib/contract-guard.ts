@@ -149,7 +149,7 @@ export class ContractGuard {
         data: {
           contractId,
           contractType,
-          rawJson: data, // Store as JSON object (not stringified)
+          rawJson: data, // Note: Field name is 'rawJson' for backwards compat, but stores JSON object (JSONB)
           status,
           validationLog,
           integrityHash
