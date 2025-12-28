@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -21,9 +21,9 @@ model Contract {
   id            String   @id @default(cuid())
   contractId    String   @unique // e.g., "ORD-20250714-001", "PULSE-20250720-..."
   contractType  String   // "Order", "Pulse", "Decision", "Intent", "Uplink"
-  rawJson       String   // Complete JSON contract as text
+  rawJson       Json     // Complete JSON contract (using JSONB in PostgreSQL)
   status        String   // "ACCEPTED" or "REJECTED"
-  validationLog String?  // Validation errors if REJECTED
+  validationLog String?  // Validation errors if REJECTED (kept as String for simplicity)
   integrityHash String   // SHA-256 hash for immutable ledger verification
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -49,10 +49,10 @@ model Order {
   cycleType         String   // "12WY", "SOB", "ADHOC"
   cycleWeek         Int
   rockTitle         String
-  rockDoD           String   // JSON array as string
-  tactics           String   // JSON array as string
-  constraints       String   // JSON array as string
-  escalationRules   String   // JSON array as string
+  rockDoD           Json     // JSON array (definition_of_done)
+  tactics           Json     // JSON array
+  constraints       Json     // JSON array
+  escalationRules   Json     // JSON array
   linkedDecisionId  String?
   notes             String?
   ingestedAt        DateTime @default(now())
@@ -75,8 +75,8 @@ model Pulse {
   kpiTmiTarget          Float
   kpiTvrScore           Float
   kpi12wyCompletionPct  Float
-  domains               String   // JSON object as string
-  type4DecisionsNeeded  String   // JSON array as string
+  domains               Json     // JSON object
+  type4DecisionsNeeded  Json     // JSON array
   notes                 String?
   ingestedAt            DateTime @default(now())
 
@@ -98,11 +98,11 @@ model Decision {
   signalLevel          String   // "green", "orange", "red"
   gate                 String?  // "BETH", "RICK", "SINGULARITY", "OTHER"
   type4Question        String
-  options              String   // JSON array as string
+  options              Json     // JSON array
   recommendation       String
-  rationale            String   // JSON array as string (10 lines max)
+  rationale            Json     // JSON array (10 lines max)
   deadline             DateTime
-  a0Decision           String?  // JSON object as string (nullable)
+  a0Decision           Json?    // JSON object (nullable)
   ingestedAt           DateTime @default(now())
 
   @@index([decisionId])
@@ -120,14 +120,14 @@ model Intent {
   projectId            String?
   title                String
   intentText           String
-  domainsTouched       String   // JSON array as string
+  domainsTouched       Json     // JSON array
   expectedEnergyCost   String   // "low", "medium", "high"
   timeHorizon          String   // "now", "1w", "4w", "12WY", "1y", "3y", "10y"
   riskLevel            String   // "low", "medium", "high"
-  constraints          String   // JSON array as string
-  successCriteria      String   // JSON array as string
+  constraints          Json     // JSON array
+  successCriteria      Json     // JSON array
   needsType4Decision   Boolean
-  attachments          String?  // JSON array as string
+  attachments          Json?    // JSON array (nullable)
   notes                String?
   ingestedAt           DateTime @default(now())
 
@@ -144,8 +144,8 @@ model Uplink {
   createdBy        String
   week             Int?
   projectId        String?
-  lines            String   // JSON array as string (exactly 10 lines)
-  linkedPulseIds   String   // JSON array as string
+  lines            Json     // JSON array (exactly 10 lines)
+  linkedPulseIds   Json     // JSON array
   type4Required    Boolean
   ingestedAt       DateTime @default(now())
 

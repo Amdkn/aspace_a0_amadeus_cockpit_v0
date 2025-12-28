@@ -17,7 +17,7 @@ import { PrismaClient } from '../generated/client';
 import { createHash } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
+import { validateAgainstSchemaFile, ValidationResult } from './aspace-validator';
 
 // Air Lock Mode: Graceful degradation
 const AIR_LOCK_MODE = process.env.ASPACE_AIR_LOCK_MODE === 'true';
@@ -35,11 +35,6 @@ try {
   }
 }
 
-export interface ValidationResult {
-  valid: boolean;
-  errors: string[];
-}
-
 export interface ContractInput {
   contractId: string;
   contractType: 'Order' | 'Pulse' | 'Decision' | 'Intent' | 'Uplink';
@@ -48,16 +43,14 @@ export interface ContractInput {
 
 export class ContractGuard {
   private protocolsDir: string;
-  private validatorScript: string;
 
   constructor() {
     this.protocolsDir = path.join(process.cwd(), 'protocols');
-    this.validatorScript = path.join(process.cwd(), 'validate_contracts.js');
   }
 
   /**
    * Validate a contract against its JSON schema
-   * Uses the zero-dependency validator from validate_contracts.js
+   * Uses the shared zero-dependency validator from aspace-validator.ts
    */
   async validateContract(contract: ContractInput): Promise<ValidationResult> {
     const { contractType, data } = contract;
@@ -87,183 +80,8 @@ export class ContractGuard {
       };
     }
 
-    // Write contract to temporary file for validation
-    const tmpDir = os.tmpdir();
-    const tmpFile = path.join(tmpDir, `contract-${Date.now()}-${Math.random().toString(36).substring(7)}.json`);
-    
-    try {
-      fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2));
-
-      // Load and execute validation using the ASpaceValidator from validate_contracts.js
-      const validationResult = this.runValidation(data, schemaPath);
-      
-      // Clean up temp file
-      fs.unlinkSync(tmpFile);
-
-      return validationResult;
-    } catch (error) {
-      // Clean up temp file on error
-      if (fs.existsSync(tmpFile)) {
-        fs.unlinkSync(tmpFile);
-      }
-
-      return {
-        valid: false,
-        errors: [`Validation error: ${error instanceof Error ? error.message : String(error)}`]
-      };
-    }
-  }
-
-  /**
-   * Run validation using the ASpaceValidator logic
-   * This replicates the validation from validate_contracts.js
-   */
-  private runValidation(data: any, schemaPath: string): ValidationResult {
-    try {
-      const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
-      const errors: string[] = [];
-
-      // Import the validation logic (simplified version)
-      this.validate(data, schema, 'Root', schema, errors);
-
-      return {
-        valid: errors.length === 0,
-        errors
-      };
-    } catch (error) {
-      return {
-        valid: false,
-        errors: [`Schema validation failed: ${error instanceof Error ? error.message : String(error)}`]
-      };
-    }
-  }
-
-  /**
-   * Validation logic (simplified from validate_contracts.js)
-   */
-  private validate(
-    data: any,
-    schema: any,
-    currentPath: string,
-    rootContext: any,
-    errors: string[]
-  ): void {
-    if (!schema) return;
-
-    // Dereference $ref if present
-    if (schema.$ref) {
-      try {
-        const resolved = this.resolveRef(schema.$ref, rootContext);
-        schema = { ...resolved, ...schema };
-        delete schema.$ref;
-      } catch (e) {
-        errors.push(`[${currentPath}] Reference error: ${e instanceof Error ? e.message : String(e)}`);
-        return;
-      }
-    }
-
-    if (!schema || typeof schema !== 'object') return;
-
-    // Type checking
-    if (schema.type) {
-      const actualType = Array.isArray(data) ? 'array' : (data === null ? 'null' : typeof data);
-      let expectedType = schema.type;
-
-      if (expectedType === 'integer') expectedType = 'number';
-
-      if (expectedType === 'number' && typeof data === 'number') {
-        if (schema.type === 'integer' && !Number.isInteger(data)) {
-          errors.push(`[${currentPath}] Expected integer, received float ${data}`);
-        }
-      } else if (actualType !== expectedType) {
-        errors.push(`[${currentPath}] Invalid type: expected ${schema.type}, received ${actualType}`);
-        return;
-      }
-    }
-
-    // Const & Enum
-    if (schema.const !== undefined && data !== schema.const) {
-      errors.push(`[${currentPath}] Invalid const value: expected ${schema.const}, received ${JSON.stringify(data)}`);
-    }
-    if (schema.enum && !schema.enum.includes(data)) {
-      errors.push(`[${currentPath}] Value not in enum: received ${JSON.stringify(data)}, expected one of [${schema.enum.join(', ')}]`);
-    }
-
-    // Object validation
-    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
-      const properties = schema.properties || {};
-      const required = schema.required || [];
-
-      required.forEach((field: string) => {
-        if (data[field] === undefined) {
-          errors.push(`[${currentPath}] Missing required field: ${field}`);
-        }
-      });
-
-      Object.keys(data).forEach((key) => {
-        if (properties[key]) {
-          this.validate(data[key], properties[key], `${currentPath}.${key}`, rootContext, errors);
-        } else if (schema.additionalProperties === false) {
-          errors.push(`[${currentPath}] Property not allowed: ${key}`);
-        }
-      });
-    }
-
-    // Array validation
-    if (Array.isArray(data)) {
-      if (schema.minItems !== undefined && data.length < schema.minItems) {
-        errors.push(`[${currentPath}] Too few elements: min ${schema.minItems}`);
-      }
-      if (schema.maxItems !== undefined && data.length > schema.maxItems) {
-        errors.push(`[${currentPath}] Too many elements: max ${schema.maxItems}`);
-      }
-      if (schema.items) {
-        data.forEach((item, index) => {
-          this.validate(item, schema.items, `${currentPath}[${index}]`, rootContext, errors);
-        });
-      }
-    }
-
-    // String constraints
-    if (typeof data === 'string') {
-      if (schema.pattern && !new RegExp(schema.pattern).test(data)) {
-        errors.push(`[${currentPath}] Invalid format (regex): ${data}`);
-      }
-      if (schema.minLength !== undefined && data.length < schema.minLength) {
-        errors.push(`[${currentPath}] Too short: min ${schema.minLength}`);
-      }
-      if (schema.maxLength !== undefined && data.length > schema.maxLength) {
-        errors.push(`[${currentPath}] Too long: max ${schema.maxLength}`);
-      }
-    }
-
-    // Number constraints
-    if (typeof data === 'number') {
-      if (schema.minimum !== undefined && data < schema.minimum) {
-        errors.push(`[${currentPath}] Value too low: ${data} < minimum ${schema.minimum}`);
-      }
-      if (schema.maximum !== undefined && data > schema.maximum) {
-        errors.push(`[${currentPath}] Value too high: ${data} > maximum ${schema.maximum}`);
-      }
-    }
-  }
-
-  /**
-   * Resolve JSON Schema $ref
-   */
-  private resolveRef(ref: string, rootSchema: any): any {
-    if (ref.startsWith('#/')) {
-      const parts = ref.split('/').slice(1);
-      let current = rootSchema;
-      for (const part of parts) {
-        if (current[part] === undefined) {
-          throw new Error(`Unresolved reference: ${ref}`);
-        }
-        current = current[part];
-      }
-      return current;
-    }
-    throw new Error(`External $ref not supported: ${ref}`);
+    // Use shared validator
+    return validateAgainstSchemaFile(data, schemaPath);
   }
 
   /**
@@ -317,13 +135,13 @@ export class ContractGuard {
     // Step 1: Validate contract
     const validation = await this.validateContract(contract);
 
-    const rawJson = JSON.stringify(data);
     const status = validation.valid ? 'ACCEPTED' : 'REJECTED';
     const validationLog = validation.valid ? null : validation.errors.join('\n');
     
     // Generate timestamp and integrity hash for immutable ledger
     const timestamp = new Date().toISOString();
-    const integrityHash = this.generateIntegrityHash(contractId, contractType, rawJson, status, timestamp);
+    const rawJsonString = JSON.stringify(data);
+    const integrityHash = this.generateIntegrityHash(contractId, contractType, rawJsonString, status, timestamp);
 
     // Step 2: Write to Contract ledger (always)
     try {
@@ -331,7 +149,7 @@ export class ContractGuard {
         data: {
           contractId,
           contractType,
-          rawJson,
+          rawJson: data, // Note: Field name is 'rawJson' for backwards compat, but stores JSON object (JSONB)
           status,
           validationLog,
           integrityHash
@@ -383,10 +201,10 @@ export class ContractGuard {
             cycleType: data.cycle.type,
             cycleWeek: data.cycle.week,
             rockTitle: data.rock.title,
-            rockDoD: JSON.stringify(data.rock.definition_of_done),
-            tactics: JSON.stringify(data.tactics),
-            constraints: JSON.stringify(data.constraints),
-            escalationRules: JSON.stringify(data.escalation_rules),
+            rockDoD: data.rock.definition_of_done, // Store as JSON
+            tactics: data.tactics, // Store as JSON
+            constraints: data.constraints, // Store as JSON
+            escalationRules: data.escalation_rules, // Store as JSON
             linkedDecisionId: data.linked_decision_id || null,
             notes: data.notes || null
           }
@@ -407,8 +225,8 @@ export class ContractGuard {
             kpiTmiTarget: data.kpi.tmi_target,
             kpiTvrScore: data.kpi.tvr_score,
             kpi12wyCompletionPct: data.kpi?.['12wy_completion_pct'] || 0,
-            domains: JSON.stringify(data.domains),
-            type4DecisionsNeeded: JSON.stringify(data.type4_decisions_needed),
+            domains: data.domains, // Store as JSON
+            type4DecisionsNeeded: data.type4_decisions_needed, // Store as JSON
             notes: data.notes || null
           }
         });
@@ -426,11 +244,11 @@ export class ContractGuard {
             signalLevel: data.signal_level,
             gate: data.gate || null,
             type4Question: data.type4_question,
-            options: JSON.stringify(data.options),
+            options: data.options, // Store as JSON
             recommendation: data.recommendation,
-            rationale: JSON.stringify(data.rationale_10_lines_max),
+            rationale: data.rationale_10_lines_max, // Store as JSON
             deadline: new Date(data.deadline),
-            a0Decision: data.a0_decision ? JSON.stringify(data.a0_decision) : null
+            a0Decision: data.a0_decision || null // Store as JSON or null
           }
         });
         break;
@@ -445,14 +263,14 @@ export class ContractGuard {
             projectId: data.project_id || null,
             title: data.title,
             intentText: data.intent_text,
-            domainsTouched: JSON.stringify(data.domains_touched),
+            domainsTouched: data.domains_touched, // Store as JSON
             expectedEnergyCost: data.expected_energy_cost,
             timeHorizon: data.time_horizon,
             riskLevel: data.risk_level,
-            constraints: JSON.stringify(data.constraints),
-            successCriteria: JSON.stringify(data.success_criteria),
+            constraints: data.constraints, // Store as JSON
+            successCriteria: data.success_criteria, // Store as JSON
             needsType4Decision: data.needs_type4_decision,
-            attachments: data.attachments ? JSON.stringify(data.attachments) : null,
+            attachments: data.attachments || null, // Store as JSON or null
             notes: data.notes || null
           }
         });
@@ -467,8 +285,8 @@ export class ContractGuard {
             createdBy: data.created_by,
             week: data.week || null,
             projectId: data.project_id || null,
-            lines: JSON.stringify(data.lines),
-            linkedPulseIds: JSON.stringify(data.linked_pulse_ids),
+            lines: data.lines, // Store as JSON
+            linkedPulseIds: data.linked_pulse_ids, // Store as JSON
             type4Required: data.type4_required
           }
         });

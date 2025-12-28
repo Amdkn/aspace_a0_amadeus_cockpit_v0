@@ -2,6 +2,27 @@
 
 > **L'Âge des Architectes commence ici.**
 
+## 📦 Version & Deployment
+
+**Current Version:** v0.1.0 (Phoenix Baseline)  
+**Status:** ✅ Production-ready for PostgreSQL/Coolify deployment
+
+### Quick Links
+
+- 🚀 **[Deployment Guide](DEPLOYMENT.md)** - Complete setup for Coolify/VPS with PostgreSQL
+- 🗺️ **[Roadmap](ROADMAP.md)** - Future plans and version strategy
+- 🔒 **[Security](SECURITY.md)** - Security policies and vulnerability reporting
+
+### Key Changes in v0.1.0
+
+- ✅ Migrated from SQLite to PostgreSQL with JSONB
+- ✅ Added production-ready Dockerfile
+- ✅ Extracted shared validator module (DRY principle)
+- ✅ Added Air Lock mode for graceful degradation
+- ✅ Comprehensive deployment documentation
+
+---
+
 ## 🚀 Quickstart (30 secondes)
 
 1.  **Validation des Contrats** :

@@ -8,8 +8,9 @@
     "build": "tsc",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy",
     "sync-contracts": "tsx scripts/sync-contracts.ts",
-    "db:reset": "rm -f prisma/dev.db && prisma migrate reset --force --skip-seed",
+    "db:reset": "prisma migrate reset --force --skip-seed",
     "test": "tsx tests/contract-guard.test.ts"
   },
   "author": "Amadeus",
