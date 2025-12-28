@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "generated_at": "2025-12-28T23:41:51.437084",
+    "generator": "ops/automation/doctor_12_business_pulse.py",
+    "mission": {
+      "command": "BUSINESS_PULSE_DIAGNOSTIC",
+      "owner": "A2_DOCTOR_12",
+      "supervisor": "A1_RICK_JULES",
+      "scope": [
+        "sop_analysis",
+        "revenue_flow",
+        "bottlenecks",
+        "order_pulse_readiness"
+      ],
+      "expected_proof": [
+        "clear_sop_map",
+        "identified_bottlenecks",
+        "revenue_projection_gaps"
+      ],
+      "output_file": "reports/business_pulse_diagnostic.json"
+    }
+  },
+  "sop_analysis": {
+    "map": [
+      {
+        "file": "Knowledge Base/01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/32_VORTEX_CONNECTION_SOP.md",
+        "title": "🌀 SOP : CONNEXION VORTEX (MCP GATEWAY)",
+        "owner": "** Morty (A1) & A'0 (Superuser)"
+      },
+      {
+        "file": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/23_SOP_E_MYTH_FRANCHISE.md",
+        "title": "🏗️ SOP : E-MYTH - LE MODÈLE DE FRANCHISE (STANDARDISATION)",
+        "owner": "** Summer-Ops (A2) & Jerry (A1)"
+      },
+      {
+        "file": "Knowledge Base/01 Canopée/📂 Catégorie 3  Le Workflow Tardis (Cascades)/31_REVENUE_FOR_LIFE_SOP.md",
+        "title": "🏦 SOP : REVENUE FOR LIFE - LA POMPE À LIBERTÉ (S2 ➔ S1)",
+        "owner": "** Jerry (Flux) & Beth (Allocation Life)"
+      },
+      {
+        "file": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/20_SOP_GTD_CLARIFICATION.md",
+        "title": "📥 SOP : GTD - CAPTURE & CLARIFICATION (OPERATIONS)",
+        "owner": "** Morty (A1 - Execution Engine) & Summer-Ops (A2)"
+      },
+      {
+        "file": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/24_SOP_BUILT_TO_SELL_TVR.md",
+        "title": "📦 SOP : BUILT TO SELL - LE MODÈLE TVR (PRODUCTISATION)",
+        "owner": "** Jerry (A1 - Business Pulse) & Summer-Product (A2)"
+      },
+      {
+        "file": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/22_SOP_4HWW_DEAL.md",
+        "title": "🗽 SOP : 4HWW - LE PROTOCOLE D.E.A.L. (LIBÉRATION)",
+        "owner": "** Jerry (A1 - Business Pulse) & Summer (A2)"
+      },
+      {
+        "file": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/21_SOP_12_WEEK_YEAR.md",
+        "title": "🚀 SOP : 12 WEEK YEAR - LE MOTEUR D'EXÉCUTION",
+        "owner": "** Morty (A1 - Execution Engine)"
+      },
+      {
+        "file": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/25_SOP_WHO_NOT_HOW.md",
+        "title": "🤝 SOP : WHO NOT HOW - LE LEVIER HUMAIN & AGENTIQUE",
+        "owner": "** Beth (A1 - Life Core) & Morty (A1 - Execution Engine)"
+      }
+    ],
+    "count": 8
+  },
+  "revenue_flow": {
+    "status": "DEFINED",
+    "model": "Cascade de Priorité (Harvesting)",
+    "rules": {
+      "operations_reserve": "30%",
+      "tax_sovereignty": "20%",
+      "life_fuel": "50%"
+    },
+    "kpi": "TMI (Target Monthly Income)",
+    "source_doc": "Knowledge Base/01 Canopée/📂 Catégorie 3  Le Workflow Tardis (Cascades)/31_REVENUE_FOR_LIFE_SOP.md"
+  },
+  "bottlenecks": [
+    {
+      "id": "MISSING_ENV",
+      "severity": "HIGH",
+      "description": ".env file is missing. Secrets (Google Creds) likely not configured."
+    },
+    {
+      "id": "GOOGLE_WORKSPACE_DISCONNECTED",
+      "severity": "HIGH",
+      "description": "Communication Organ disconnected from Google Chat (No Credentials).",
+      "impact": "Air Lock & Situation Room are offline for A0 approval."
+    }
+  ],
+  "order_pulse_readiness": {
+    "order.schema": {
+      "status": "READY",
+      "version": "Draft 2020-12"
+    },
+    "pulse.schema": {
+      "status": "READY",
+      "version": "Draft 2020-12"
+    }
+  }
+}
