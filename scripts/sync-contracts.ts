@@ -183,7 +183,7 @@ async function syncContracts(): Promise<SyncResult> {
     result
   };
 
-  const auditLogPath = path.join(process.cwd(), 'logs', `sync-${Date.now()}.json`);
+  const auditLogPath = path.join(process.cwd(), 'logs', `sync-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
   fs.mkdirSync(path.dirname(auditLogPath), { recursive: true });
   fs.writeFileSync(auditLogPath, JSON.stringify(auditLog, null, 2));
   console.log(`\n📝 Audit log written: ${auditLogPath}`);

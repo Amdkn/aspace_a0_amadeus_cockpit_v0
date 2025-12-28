@@ -73,7 +73,7 @@ export class ContractGuard {
 
     // Write contract to temporary file for validation
     const tmpDir = os.tmpdir();
-    const tmpFile = path.join(tmpDir, `contract-${Date.now()}.json`);
+    const tmpFile = path.join(tmpDir, `contract-${Date.now()}-${Math.random().toString(36).substring(7)}.json`);
     
     try {
       fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2));
@@ -346,7 +346,7 @@ export class ContractGuard {
             kpiTmiCurrent: data.kpi.tmi_current,
             kpiTmiTarget: data.kpi.tmi_target,
             kpiTvrScore: data.kpi.tvr_score,
-            kpi12wyCompletionPct: data.kpi['12wy_completion_pct'],
+            kpi12wyCompletionPct: data.kpi?.['12wy_completion_pct'] || 0,
             domains: JSON.stringify(data.domains),
             type4DecisionsNeeded: JSON.stringify(data.type4_decisions_needed),
             notes: data.notes || null
