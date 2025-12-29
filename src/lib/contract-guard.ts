@@ -222,8 +222,16 @@ export class ContractGuard {
 
   /**
    * Write to projection tables (Order, Pulse, Decision, Intent, Uplink)
+   * Defensive guard: Skip projection writes if database is unavailable or Air Lock mode is active
    */
   private async writeProjection(contractType: string, data: any): Promise<void> {
+    // Defensive guard: Check if prisma is available and Air Lock mode is inactive
+    if (prisma === null || AIR_LOCK_MODE) {
+      console.warn(`⚠️  [ContractGuard] Air Lock Mode: Skipping projection write for ${contractType} (contractId: ${data.id || 'unknown'})`);
+      console.warn(`   Reason: Database unavailable or Air Lock mode active`);
+      return; // Safe no-op: skip projection write
+    }
+
     switch (contractType) {
       case 'Order':
         await prisma!.order.create({
