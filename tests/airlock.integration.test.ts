@@ -105,6 +105,7 @@ class AirLockIntegrationTests {
       const isAirLockMode = process.env.ASPACE_AIR_LOCK_MODE === 'true';
       const noDatabaseUrl = !process.env.DATABASE_URL || process.env.DATABASE_URL === '';
       
+      // Air Lock mode is active when ASPACE_AIR_LOCK_MODE === 'true' OR !DATABASE_URL (matching ContractGuard logic)
       const passed = isAirLockMode || noDatabaseUrl;
       
       this.results.push({

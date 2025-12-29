@@ -64,24 +64,48 @@ jobs:
       
       # Run unit tests and capture output
       - name: Run unit tests
+        id: unit_tests
         run: |
           npm test 2>&1 | tee reports/evidence_tests.log
-          TEST_EXIT=$?
-          echo '{"task":"unit_tests","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","exit_code":'$TEST_EXIT'}' > reports/evidence_tests.json
-          exit $TEST_EXIT
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
         continue-on-error: true
+      
+      - name: Save unit tests exit code
+        if: always()
+        run: |
+          TEST_EXIT="${{ steps.unit_tests.outputs.exit_code }}"
+          echo '{"task":"unit_tests","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","exit_code":'${TEST_EXIT:-1}'}' > reports/evidence_tests.json
       
       # Run Air Lock integration test
       - name: Run Air Lock integration test
+        id: airlock_test
         run: |
-          npm run test:airlock 2>&1 | tee reports/evidence_airlock_runtime.log
-          AIRLOCK_EXIT=$?
-          # Extract JSON evidence from test output
-          tail -n +$(grep -n "📋 EVIDENCE OUTPUT" reports/evidence_airlock_runtime.log | cut -d: -f1) reports/evidence_airlock_runtime.log | grep -A 1000 "{" | head -n -1 > reports/evidence_airlock_runtime.json || echo '{"error":"Failed to extract JSON evidence"}' > reports/evidence_airlock_runtime.json
-          exit $AIRLOCK_EXIT
+          npm run test:airlock > reports/evidence_airlock_runtime.log 2>&1
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
         env:
           ASPACE_AIR_LOCK_MODE: 'true'
         continue-on-error: true
+      
+      - name: Extract Air Lock test JSON evidence
+        if: always()
+        run: |
+          # Extract JSON evidence from test output (between "📋 EVIDENCE OUTPUT" marker and end)
+          if grep -q "📋 EVIDENCE OUTPUT" reports/evidence_airlock_runtime.log; then
+            sed -n '/📋 EVIDENCE OUTPUT/,${/^{/,/^}$/p}' reports/evidence_airlock_runtime.log > reports/evidence_airlock_runtime.json
+          fi
+          # Add exit_code to the evidence JSON
+          AIRLOCK_EXIT="${{ steps.airlock_test.outputs.exit_code }}"
+          if [ -f reports/evidence_airlock_runtime.json ] && [ -s reports/evidence_airlock_runtime.json ]; then
+            # Use jq to add exit_code field if available, otherwise create basic JSON
+            if command -v jq &> /dev/null; then
+              jq --arg code "${AIRLOCK_EXIT:-1}" '. + {exit_code: ($code | tonumber)}' reports/evidence_airlock_runtime.json > reports/evidence_airlock_runtime.json.tmp
+              mv reports/evidence_airlock_runtime.json.tmp reports/evidence_airlock_runtime.json
+            else
+              echo '{"exit_code":'${AIRLOCK_EXIT:-1}'}' > reports/evidence_airlock_runtime.json
+            fi
+          else
+            echo '{"error":"Failed to extract JSON evidence","exit_code":'${AIRLOCK_EXIT:-1}'}' > reports/evidence_airlock_runtime.json
+          fi
       
       # Create evidence index
       - name: Create evidence index
@@ -126,13 +150,13 @@ jobs:
         if: always()
         run: |
           echo "Checking test results..."
-          TESTS_EXIT=$(jq -r '.exit_code' reports/evidence_tests.json 2>/dev/null || echo 1)
-          AIRLOCK_EXIT=$(jq -r '.exit_code' reports/evidence_airlock_runtime.json 2>/dev/null || echo 1)
+          TESTS_EXIT="${{ steps.unit_tests.outputs.exit_code }}"
+          AIRLOCK_EXIT="${{ steps.airlock_test.outputs.exit_code }}"
           
-          echo "Unit tests exit code: $TESTS_EXIT"
-          echo "Air Lock test exit code: $AIRLOCK_EXIT"
+          echo "Unit tests exit code: ${TESTS_EXIT:-unknown}"
+          echo "Air Lock test exit code: ${AIRLOCK_EXIT:-unknown}"
           
-          if [ "$TESTS_EXIT" != "0" ] || [ "$AIRLOCK_EXIT" != "0" ]; then
+          if [ "${TESTS_EXIT}" != "0" ] || [ "${AIRLOCK_EXIT}" != "0" ]; then
             echo "❌ One or more critical tests failed"
             exit 1
           else
