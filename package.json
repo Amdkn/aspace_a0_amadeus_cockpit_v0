@@ -11,7 +11,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "sync-contracts": "tsx scripts/sync-contracts.ts",
     "db:reset": "prisma migrate reset --force --skip-seed",
-    "test": "tsx tests/contract-guard.test.ts"
+    "test": "tsx tests/contract-guard.test.ts",
+    "test:airlock": "ASPACE_AIR_LOCK_MODE=true tsx tests/airlock.integration.test.ts"
   },
   "author": "Amadeus",
   "license": "ISC",
