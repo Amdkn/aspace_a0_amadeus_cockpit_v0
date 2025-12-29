@@ -1,0 +1,25 @@
+{
+  "B0_PREFLIGHT": "reports/business_pulse_preflight.json",
+  "B1_SOP_AUDIT": "reports/business_pulse_sop_audit.json",
+  "B2_VALUE_FLOW": "reports/business_pulse_value_flow.json",
+  "B3_FINDINGS": "reports/business_pulse_doctor_12_findings.json",
+  "ARTIFACTS": {
+    "sops": [
+      "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/25_SOP_WHO_NOT_HOW.md",
+      "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/20_SOP_GTD_CLARIFICATION.md",
+      "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/23_SOP_E_MYTH_FRANCHISE.md",
+      "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/24_SOP_BUILT_TO_SELL_TVR.md",
+      "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/21_SOP_12_WEEK_YEAR.md",
+      "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/22_SOP_4HWW_DEAL.md",
+      "Knowledge Base/01 Canopée/📂 Catégorie 3  Le Workflow Tardis (Cascades)/31_REVENUE_FOR_LIFE_SOP.md",
+      "Knowledge Base/01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/32_VORTEX_CONNECTION_SOP.md"
+    ],
+    "protocols": [
+      "protocols/order.schema.schema.json",
+      "protocols/intent.schema.schema.json",
+      "protocols/pulse.schema.schema.json",
+      "protocols/uplink.schema.schema.json",
+      "protocols/decision.schema.schema.json"
+    ]
+  }
+}

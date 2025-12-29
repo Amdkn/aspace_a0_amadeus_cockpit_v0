@@ -1,0 +1,114 @@
+{
+  "ticket": "B1",
+  "timestamp": "2025-12-29T00:00:20.674587",
+  "sop_count": 8,
+  "patterns_confirmed": {
+    "revenue_for_life": true,
+    "who_not_how": true
+  },
+  "sops": [
+    {
+      "path": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/25_SOP_WHO_NOT_HOW.md",
+      "filename": "25_SOP_WHO_NOT_HOW.md",
+      "has_owner": true,
+      "has_who_not_how": true,
+      "sections": [
+        "## I. Le Changement de Paradigme (Délégation Totale)",
+        "## II. La Matrice de Sélection (Morty)",
+        "## III. Le Protocole de Transfert (SOP 10/80/10)",
+        "## IV. La Collaboration avec Rick (Ressources Bio-Inspirées)",
+        "## V. L'Indicateur de Succès (Liberté)"
+      ]
+    },
+    {
+      "path": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/20_SOP_GTD_CLARIFICATION.md",
+      "filename": "20_SOP_GTD_CLARIFICATION.md",
+      "has_owner": true,
+      "has_who_not_how": false,
+      "sections": [
+        "## I. Le Protocole de Capture",
+        "## II. L'Algorithme de Clarification (Workflow)",
+        "## III. Catégorisation par Contextes (@)",
+        "## IV. La Revue Hebdomadaire (Le Reset)"
+      ]
+    },
+    {
+      "path": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/23_SOP_E_MYTH_FRANCHISE.md",
+      "filename": "23_SOP_E_MYTH_FRANCHISE.md",
+      "has_owner": true,
+      "has_who_not_how": false,
+      "sections": [
+        "## I. Le Paradoxe de l'Entrepreneur (A0)",
+        "## II. Le Prototype de Franchise Solarpunk",
+        "## III. Développement du Système (L'Approche en 3 Étapes)",
+        "## IV. Le Manuel des Opérations (SOH)",
+        "## V. Directive de Rick (Audit de Standardisation)"
+      ]
+    },
+    {
+      "path": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/24_SOP_BUILT_TO_SELL_TVR.md",
+      "filename": "24_SOP_BUILT_TO_SELL_TVR.md",
+      "has_owner": true,
+      "has_who_not_how": false,
+      "sections": [
+        "## I. Le Filtre T.V.R. (L'Audit de Summer)",
+        "## II. Le Protocole de Productisation",
+        "## III. Gestion du Cash-Flow (Jerry)",
+        "## IV. L'Audit de Rick (Valeur Systémique)",
+        "## V. Livrables de Sortie"
+      ]
+    },
+    {
+      "path": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/21_SOP_12_WEEK_YEAR.md",
+      "filename": "21_SOP_12_WEEK_YEAR.md",
+      "has_owner": true,
+      "has_who_not_how": false,
+      "sections": [
+        "## I. La Structure du Cycle",
+        "## II. Définition des \"Rocks\" (Objectifs)",
+        "## III. Le Système de Mesure (Scorecard)",
+        "## IV. Rythme Hebdomadaire (WAM)",
+        "## V. Connexion au Life Wheel"
+      ]
+    },
+    {
+      "path": "Knowledge Base/00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/22_SOP_4HWW_DEAL.md",
+      "filename": "22_SOP_4HWW_DEAL.md",
+      "has_owner": true,
+      "has_who_not_how": false,
+      "sections": [
+        "## I. D pour Définition (Beth)",
+        "## II. E pour Élimination (Rick)",
+        "## III. A pour Automatisation (A'0 & Morty)",
+        "## IV. L pour Libération (Amadeus)"
+      ]
+    },
+    {
+      "path": "Knowledge Base/01 Canopée/📂 Catégorie 3  Le Workflow Tardis (Cascades)/31_REVENUE_FOR_LIFE_SOP.md",
+      "filename": "31_REVENUE_FOR_LIFE_SOP.md",
+      "has_owner": true,
+      "has_who_not_how": false,
+      "sections": [
+        "## I. Le Cycle de Récolte (Harvesting)",
+        "## II. L'Indicateur de Liberté (TMI)",
+        "## III. Allocation des Ressources Life (Beth)",
+        "## IV. Le Protocole de \"Déconnexion\" (4HWW)",
+        "## V. Directive de Rick (Énergie Circulaire)"
+      ]
+    },
+    {
+      "path": "Knowledge Base/01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/32_VORTEX_CONNECTION_SOP.md",
+      "filename": "32_VORTEX_CONNECTION_SOP.md",
+      "has_owner": true,
+      "has_who_not_how": false,
+      "sections": [
+        "## I. Pré-requis (Checklist Go/No-Go)",
+        "## II. Séquence d'Allumage",
+        "## III. Déploiement n8n v2.0",
+        "## IV. Sécurité \"Air Lock\"",
+        "## V. Rollback & Emergency Procedures"
+      ]
+    }
+  ],
+  "gaps": []
+}

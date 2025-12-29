@@ -1,0 +1,95 @@
+{
+  "ticket": "B0",
+  "timestamp": "2025-12-29T00:00:10.495594",
+  "evidence": {
+    "repo_tree_snapshot": true,
+    "presence_of_ops_reports": false,
+    "presence_of_protocols_or_sops": true
+  },
+  "snapshot": {
+    "Knowledge Base": [
+      "00 Mycélium/📂 Catégorie 0  Identité & Constitution (Areas - DNA)/00_CONSTITUTION_SOLARPUNK.md",
+      "00 Mycélium/📂 Catégorie 0  Identité & Constitution (Areas - DNA)/01_LIFE_WHEEL_LD_CATALOG.md",
+      "00 Mycélium/📂 Catégorie 0  Identité & Constitution (Areas - DNA)/02_HORIZONS_TEMPORELS.md",
+      "00 Mycélium/📂 Catégorie 1  Hiérarchie Agentique (Skill Matrix)/10_SKILL_MATRIX_A0_A3.md",
+      "00 Mycélium/📂 Catégorie 1  Hiérarchie Agentique (Skill Matrix)/11_PROMPT_SYSTEM_A0_AMADEUS.md",
+      "00 Mycélium/📂 Catégorie 1  Hiérarchie Agentique (Skill Matrix)/12_PROMPT_SYSTEM_A_PRIME_0_CEO.md",
+      "00 Mycélium/📂 Catégorie 1  Hiérarchie Agentique (Skill Matrix)/13_TECH_STACK_ENDPOINTS.md",
+      "00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/20_SOP_GTD_CLARIFICATION.md",
+      "00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/21_SOP_12_WEEK_YEAR.md",
+      "00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/22_SOP_4HWW_DEAL.md",
+      "00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/23_SOP_E_MYTH_FRANCHISE.md",
+      "00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/24_SOP_BUILT_TO_SELL_TVR.md",
+      "00 Mycélium/📂 Catégorie 2  Bibliothèques Fondatrices (Resources - SOP)/25_SOP_WHO_NOT_HOW.md",
+      "00 Mycélium/📂 Catégorie 3  Opérations & Blueprints (Projects - SOB)/30_BLUEPRINT_ESB_TRIAD.md",
+      "00 Mycélium/📂 Catégorie 3  Opérations & Blueprints (Projects - SOB)/31_SOB_HUB_FOUNDRY.md",
+      "00 Mycélium/📂 Catégorie 3  Opérations & Blueprints (Projects - SOB)/32_MAGNIFICENT_AUTO_SALES_MAS.md",
+      "00 Mycélium/📂 Catégorie 4  Flux de Conscience (IPBD Workflow)/40_IPBD_NOMENCLATURE_I0_I3.md",
+      "00 Mycélium/📂 Catégorie 4  Flux de Conscience (IPBD Workflow)/41_WORKFLOW_CASCADE_OSCILLANT.md",
+      "00 Mycélium/📂 Catégorie 4  Flux de Conscience (IPBD Workflow)/42_ROUTAGE_PARA_HUB.md",
+      "00 Mycélium/📂 Catégorie 5  The Agentic Roster (Personas)/50_SUMMER_HEROES_ROSTER.md",
+      "00 Mycélium/📂 Catégorie 5  The Agentic Roster (Personas)/51_LIFE_FLEET_ROSTER.md",
+      "00 Mycélium/📂 Catégorie 5  The Agentic Roster (Personas)/52_RICK_GALLIFREY_ROSTER.md",
+      "01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/10_LIFE_OS_CORE.md",
+      "01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/11_SOLARPUNK_OS_AUDIT.md",
+      "01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/12_AMADEUS_A0_NAVIGATION.md",
+      "01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/30_IPBD_META_INTERFACE.md",
+      "01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/31_AGENT_SKILLS_MATRIX.md",
+      "01 Canopée/📂 Catégorie 1  Le Panthéon des OS (S1 & S3)/32_VORTEX_CONNECTION_SOP.md",
+      "01 Canopée/📂 Catégorie 2  Le Summer-Verse (S2 - Business Pulse)/20_SUMMER_VERSE_PROTOCOL.md",
+      "01 Canopée/📂 Catégorie 2  Le Summer-Verse (S2 - Business Pulse)/21_JERRY_GATEKEEPER_SKILL.md",
+      "01 Canopée/📂 Catégorie 2  Le Summer-Verse (S2 - Business Pulse)/22_THE_SUNDAY_UPLINK.md",
+      "01 Canopée/📂 Catégorie 3  Le Workflow Tardis (Cascades)/30_WORKFLOW_IPBD_A0_TO_S3.md",
+      "01 Canopée/📂 Catégorie 3  Le Workflow Tardis (Cascades)/31_REVENUE_FOR_LIFE_SOP.md"
+    ],
+    "protocols": [
+      "REGISTRY.md",
+      "decision.schema.json",
+      "intent.schema.json",
+      "order.schema.json",
+      "pulse.schema.json",
+      "uplink.schema.json"
+    ],
+    "ops": [
+      "automation/autonomous_thinking.py",
+      "automation/doctor_12_business_pulse.py",
+      "automation/human_bridge.py",
+      "automation/orchestrator.py",
+      "automation/orchestrator_v2.py",
+      "automation/organs/__init__.py",
+      "automation/organs/__pycache__/__init__.cpython-313.pyc",
+      "automation/organs/__pycache__/communication.cpython-313.pyc",
+      "automation/organs/__pycache__/financial_guard.cpython-313.pyc",
+      "automation/organs/__pycache__/thinking.cpython-313.pyc",
+      "automation/organs/communication.py",
+      "automation/organs/financial_guard.py",
+      "automation/organs/thinking.py",
+      "automation/statusbar.sh",
+      "mcp/coolify.md",
+      "mcp/dokploy.md",
+      "mcp/github.md",
+      "mcp/hostinger.md",
+      "mcp/n8n.md",
+      "mcp/supabase.md",
+      "ollama/deepseek-r1.Modelfile",
+      "ollama/gemini-3-flash.Modelfile",
+      "ollama/gemma-3n.Modelfile",
+      "rituals/airlock-flow.md",
+      "rituals/audit-rick.md",
+      "rituals/daily-pulse.md",
+      "rituals/sunday-uplink.md"
+    ],
+    "reports": [
+      "business_pulse_diagnostic.json",
+      "mission_spec_tickets.json"
+    ],
+    "prisma": [
+      "schema.prisma"
+    ],
+    "Deployment": [
+      "DEPLOYMENT_NOTES.md",
+      "Summer_V1/Dockerfile",
+      "Summer_V1/jerry_link_spec.md"
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+[
+  {
+    "id": "B0",
+    "command": "BUSINESS_PREFLIGHT_SCAN",
+    "owner": "A3_MONITORING_LOGS",
+    "supervisor": "A1_RICK_JULES",
+    "expected_proof": [
+      "repo_tree_snapshot",
+      "presence_of_ops_reports",
+      "presence_of_protocols_or_sops"
+    ],
+    "output_file": "reports/business_pulse_preflight.json",
+    "notes": "Map folders: Knowledge Base/, protocols/, ops/, reports/, prisma/, Deployment/."
+  },
+  {
+    "id": "B1",
+    "command": "SOP_STRUCTURE_AUDIT",
+    "owner": "A3_SOP_AUDIT",
+    "supervisor": "A1_RICK_JULES",
+    "expected_proof": [
+      "who_not_how_confirmed",
+      "sop_gaps_identified",
+      "evidence_links"
+    ],
+    "output_file": "reports/business_pulse_sop_audit.json",
+    "notes": "Use Revenue-for-Life and SOP_WHO_NOT_HOW as reference patterns."
+  },
+  {
+    "id": "B2",
+    "command": "VALUE_FLOW_EXTRACTION",
+    "owner": "A3_MÉTIER_PUR",
+    "supervisor": "A1_RICK_JULES",
+    "expected_proof": [
+      "identified_value_units",
+      "order_pulse_alignment",
+      "business_bottlenecks"
+    ],
+    "output_file": "reports/business_pulse_value_flow.json",
+    "notes": "Infer flows strictly from contracts, schemas, and SOPs."
+  },
+  {
+    "id": "B3",
+    "command": "DOCTOR_12_DIAGNOSTIC",
+    "owner": "A2_DOCTOR_12",
+    "supervisor": "A1_RICK_JULES",
+    "expected_proof": [
+      "business_readiness_score",
+      "risk_map",
+      "next_operational_recommendations"
+    ],
+    "output_file": "reports/business_pulse_doctor_12_findings.json",
+    "notes": "Translate evidence into Business Pulse signals (cadence, sustainability, fragility)."
+  },
+  {
+    "id": "B4",
+    "command": "CONSOLIDATE_AND_BRIEF_A0",
+    "owner": "A3_REPORTING",
+    "supervisor": "A1_RICK_JULES",
+    "expected_proof": [
+      "one_exec_summary_md",
+      "one_final_json_report",
+      "evidence_index_present"
+    ],
+    "output_file": "reports/business_pulse_diagnostic.json",
+    "notes": "Produce executive clarity, no jargon, no speculation."
+  }
+]
