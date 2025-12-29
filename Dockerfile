@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci
 
 # Copy Prisma schema
 COPY prisma ./prisma
@@ -28,6 +28,9 @@ RUN npx prisma generate
 
 # Build TypeScript
 RUN npm run build
+
+# Remove devDependencies and clean cache to reduce image size
+RUN npm prune --production && npm cache clean --force
 
 # Environment variables (override in Coolify)
 ENV NODE_ENV=production
