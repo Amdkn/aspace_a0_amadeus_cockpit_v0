@@ -4,9 +4,10 @@
 
 FROM node:20-slim
 
-# Install OpenSSL for Prisma
+# Install OpenSSL for Prisma and curl for healthcheck
 RUN apt-get update && apt-get install -y \
     openssl \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -44,9 +45,9 @@ ENV DATABASE_URL=postgresql://user:password@localhost:5432/aspace
 # Expose port (if running as API service in the future)
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "console.log('healthy')" || exit 1
+# Health check - check HTTP server endpoint
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
 
 # Default command: migrate database, then start application
 CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]

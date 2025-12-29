@@ -48,7 +48,7 @@ build/
 # Database & Prisma
 *.db
 *.db-journal
-prisma/migrations
+# prisma/migrations - MUST be committed for production deployment
 src/generated/
 
 # Temporary files
