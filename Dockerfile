@@ -29,6 +29,10 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
+# Copy Prisma generated client to dist folder
+# TypeScript compiler doesn't copy generated assets, so we do it explicitly
+RUN cp -r src/generated dist/src/generated
+
 # Remove devDependencies and clean cache to reduce image size
 RUN npm prune --production && npm cache clean --force
 
