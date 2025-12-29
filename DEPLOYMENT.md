@@ -71,21 +71,22 @@ NODE_ENV=staging
 
 ### Port Configuration
 
-- **Container Port:** 3000 (currently not exposed, for future API)
-- **Public Port:** Not needed for job runner mode
+- **Container Port:** 3000
+- **Public Port:** Optional (expose if you want to access API endpoints)
 
 ### Deployment Mode
 
-**Current Setup:** Job Runner
-- Validates contracts on startup
-- Runs migrations
-- Syncs contracts to database
-- Exits after completion
+**Current Setup:** HTTP Server with Auto-Sync
+- Runs migrations on startup
+- Syncs contracts to database automatically
+- Keeps container running with HTTP server
+- Provides health check endpoint at `/health`
+- Manual sync trigger available at `/sync`
 
-**Future Option:** API Server
-- Add REST API endpoints for contract ingestion
-- Keep container running with a Node.js server
-- Use n8n or other tools to POST contracts
+**Available Endpoints:**
+- `GET /` or `GET /health` - Health check (used by Coolify)
+- `GET /sync` - Manually trigger contract sync
+- `GET /status` - Get last sync status and results
 
 ---
 
@@ -112,10 +113,43 @@ NODE_ENV=staging
    - Check logs for validation success
    - Verify database tables created
    - Confirm contracts synced
+   - Access health endpoint: `http://your-domain.com/health` (or use Coolify's internal check)
 
 ---
 
-## 5. Build & Run Commands
+## 5. Using the API Endpoints
+
+Once deployed, the server provides several HTTP endpoints:
+
+### Health Check
+```bash
+curl http://your-domain.com/health
+```
+Returns:
+```json
+{
+  "status": "healthy",
+  "uptime": 123.45,
+  "lastSync": "2025-12-29T10:15:00.000Z",
+  "syncing": false
+}
+```
+
+### Trigger Manual Sync
+```bash
+curl http://your-domain.com/sync
+```
+Starts a contract sync in the background. Returns immediately.
+
+### Check Sync Status
+```bash
+curl http://your-domain.com/status
+```
+Returns detailed information about the last sync operation.
+
+---
+
+## 6. Build & Run Commands
 
 ### Local Development (PostgreSQL)
 
@@ -135,8 +169,11 @@ npm run prisma:migrate
 # Validate contracts
 npm run validate
 
-# Sync contracts to DB
+# Sync contracts to DB (one-time)
 npm run sync-contracts
+
+# Start HTTP server (with auto-sync)
+npm run server
 
 # Run tests
 npm run test
@@ -148,19 +185,16 @@ npm run build
 ### Production Commands (Used in Dockerfile)
 
 ```bash
-# Validate contracts (zero-dependency)
-npm run validate
-
 # Deploy migrations (production-safe)
 npm run prisma:deploy
 
-# Sync contracts to database
-npm run sync-contracts
+# Start production server (includes auto-sync)
+npm start
 ```
 
 ---
 
-## 6. Database Schema
+## 7. Database Schema
 
 ### PostgreSQL-Specific Features
 
@@ -182,7 +216,7 @@ The schema uses PostgreSQL's JSONB type for efficient storage and querying:
 
 ---
 
-## 7. Air Lock Mode
+## 8. Air Lock Mode
 
 **Purpose:** Graceful degradation when DB is unavailable
 
@@ -206,7 +240,7 @@ ASPACE_AIR_LOCK_MODE=true
 
 ---
 
-## 8. Contract Validation Flow
+## 9. Contract Validation Flow
 
 ### Validation → Ledger → Projection
 
@@ -231,7 +265,7 @@ ASPACE_AIR_LOCK_MODE=true
 
 ---
 
-## 9. Monitoring & Logs
+## 10. Monitoring & Logs
 
 ### Key Log Messages
 
@@ -249,14 +283,22 @@ ASPACE_AIR_LOCK_MODE=true
 ### Health Checks
 
 Docker health check runs every 30s:
-- Verifies Node.js process is alive
-- Can be extended to check DB connectivity
+- Checks HTTP server endpoint at `http://localhost:3000/health`
+- Start period: 40 seconds (allows time for migrations and initial sync)
+- Returns JSON with service status and uptime
+- Coolify uses this to determine if deployment is successful
 
 ---
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 ### Common Issues
+
+**Problem:** `The table 'public.Contract' does not exist in the current database`
+- **Solution:** Ensure migrations are being run. Check that `prisma/migrations` directory exists in repository and `prisma migrate deploy` runs successfully during startup.
+
+**Problem:** Container unhealthy / healthcheck fails
+- **Solution:** Check container logs. The server needs time to complete migrations and initial sync (up to 40 seconds). If still failing, verify DATABASE_URL is correct and database is accessible.
 
 **Problem:** `Error: P1001: Can't reach database server`
 - **Solution:** Check DATABASE_URL format and network access
@@ -272,7 +314,7 @@ Docker health check runs every 30s:
 
 ---
 
-## 11. Migration from SQLite
+## 12. Migration from SQLite
 
 If migrating from existing SQLite database:
 
@@ -285,7 +327,7 @@ If migrating from existing SQLite database:
 
 ---
 
-## 12. Future Enhancements (V2+)
+## 13. Future Enhancements (V2+)
 
 ### API Server Mode
 
@@ -315,7 +357,7 @@ GET /contracts?status=ACCEPTED&type=Order
 
 ---
 
-## 13. Security Checklist
+## 14. Security Checklist
 
 - [x] Contract-first architecture enforced
 - [x] Zero direct DB writes outside ContractGuard
@@ -329,7 +371,7 @@ GET /contracts?status=ACCEPTED&type=Order
 
 ---
 
-## 14. Support & References
+## 15. Support & References
 
 - **Repository**: https://github.com/YOUR_USERNAME/aspace_a0_amadeus_cockpit_v0 (replace with your fork)
 - **Issues**: GitHub Issues page
