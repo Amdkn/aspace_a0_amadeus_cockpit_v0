@@ -35,24 +35,27 @@ jobs:
       - name: A3 Scan - Prisma usage paths
         run: |
           echo "Scanning for Prisma usage patterns..."
-          grep -r "prisma\." src/ --include="*.ts" --include="*.js" -n || true > reports/evidence_prisma_paths.txt
-          echo '{"scan":"prisma_paths","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'$(grep -r "prisma\." src/ --include="*.ts" --include="*.js" -c || echo 0)'}' > reports/evidence_prisma_paths.json
+          grep -r "prisma\." src/ --include="*.ts" --include="*.js" -n > reports/evidence_prisma_paths.txt 2>&1 || true
+          MATCH_COUNT=$(wc -l < reports/evidence_prisma_paths.txt 2>/dev/null || echo 0)
+          echo '{"scan":"prisma_paths","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'${MATCH_COUNT}'}' > reports/evidence_prisma_paths.json
         continue-on-error: true
       
       # A3 Scan 2: Validator uniqueness scan
       - name: A3 Scan - Validator uniqueness
         run: |
           echo "Scanning for validator usage..."
-          grep -r "validate" src/ --include="*.ts" --include="*.js" -n || true > reports/evidence_validator_uniqueness.txt
-          echo '{"scan":"validator_uniqueness","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'$(grep -r "validate" src/ --include="*.ts" --include="*.js" -c || echo 0)'}' > reports/evidence_validator_uniqueness.json
+          grep -r "validate" src/ --include="*.ts" --include="*.js" -n > reports/evidence_validator_uniqueness.txt 2>&1 || true
+          MATCH_COUNT=$(wc -l < reports/evidence_validator_uniqueness.txt 2>/dev/null || echo 0)
+          echo '{"scan":"validator_uniqueness","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'${MATCH_COUNT}'}' > reports/evidence_validator_uniqueness.json
         continue-on-error: true
       
       # A3 Scan 3: Secrets scan
       - name: A3 Scan - Secrets detection
         run: |
           echo "Scanning for potential secrets..."
-          grep -r -i "password\|secret\|api_key\|token" . --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git -n || true > reports/evidence_secrets_scan.txt
-          echo '{"scan":"secrets_detection","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'$(grep -r -i "password\|secret\|api_key\|token" . --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git -c || echo 0)'}' > reports/evidence_secrets_scan.json
+          grep -r -i "password\|secret\|api_key\|token" . --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git -n > reports/evidence_secrets_scan.txt 2>&1 || true
+          MATCH_COUNT=$(wc -l < reports/evidence_secrets_scan.txt 2>/dev/null || echo 0)
+          echo '{"scan":"secrets_detection","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'${MATCH_COUNT}'}' > reports/evidence_secrets_scan.json
         continue-on-error: true
       
       # Run validation and capture output
@@ -111,10 +114,11 @@ jobs:
       - name: Create evidence index
         if: always()
         run: |
-          cat > reports/evidence_index.json << 'EOF'
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          cat > reports/evidence_index.json << EOF
           {
             "workflow": "meta-os-audit",
-            "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+            "timestamp": "${TIMESTAMP}",
             "branch": "${{ github.ref_name }}",
             "commit": "${{ github.sha }}",
             "evidence_files": [
