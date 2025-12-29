@@ -4,13 +4,15 @@
   "description": "Noyau de l'OS A'Space - Mode Sobriété Pure Node",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/scripts/sync-contracts.js",
+    "start": "node dist/scripts/server.js",
+    "start:sync": "node dist/scripts/sync-contracts.js",
     "validate": "npm run build && node validate_contracts.js",
     "build": "tsc",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:deploy": "prisma migrate deploy",
     "sync-contracts": "tsx scripts/sync-contracts.ts",
+    "server": "tsx scripts/server.ts",
     "db:reset": "prisma migrate reset --force --skip-seed",
     "test": "tsx tests/contract-guard.test.ts",
     "test:airlock": "ASPACE_AIR_LOCK_MODE=true tsx tests/airlock.integration.test.ts"
