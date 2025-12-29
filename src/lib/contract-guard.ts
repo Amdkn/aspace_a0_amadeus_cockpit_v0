@@ -20,19 +20,19 @@ import * as path from 'path';
 import { validateAgainstSchemaFile, ValidationResult } from './aspace-validator';
 
 // Air Lock Mode: Graceful degradation
-const AIR_LOCK_MODE = process.env.ASPACE_AIR_LOCK_MODE === 'true';
+const DATABASE_URL = process.env.DATABASE_URL;
+const AIR_LOCK_MODE = process.env.ASPACE_AIR_LOCK_MODE === 'true' || !DATABASE_URL;
 
-let prisma: PrismaClient;
-try {
-  prisma = new PrismaClient();
-} catch (error) {
-  if (AIR_LOCK_MODE) {
-    console.warn('⚠️  [ContractGuard] Air Lock Mode: Database unavailable, operating in read-only mode');
-    // @ts-ignore - Allow undefined in Air Lock mode
+let prisma: PrismaClient | null = null;
+if (!AIR_LOCK_MODE) {
+  try {
+    prisma = new PrismaClient();
+  } catch (error) {
+    console.warn('⚠️  [ContractGuard] Database initialization failed, falling back to Air Lock mode');
     prisma = null;
-  } else {
-    throw error;
   }
+} else {
+  console.warn('⚠️  [ContractGuard] Air Lock Mode: Database unavailable, operating in read-only mode');
 }
 
 export interface ContractInput {
@@ -43,9 +43,11 @@ export interface ContractInput {
 
 export class ContractGuard {
   private protocolsDir: string;
+  private offlineLedger: Map<string, { contractType: string; data: any; status: 'ACCEPTED' | 'REJECTED' }>;
 
   constructor() {
     this.protocolsDir = path.join(process.cwd(), 'protocols');
+    this.offlineLedger = this.loadOfflineLedger();
   }
 
   /**
@@ -100,6 +102,39 @@ export class ContractGuard {
   }
 
   /**
+   * Load contracts from examples directory for offline Air Lock mode.
+   */
+  private loadOfflineLedger(): Map<string, { contractType: string; data: any; status: 'ACCEPTED' | 'REJECTED' }> {
+    const ledger = new Map<string, { contractType: string; data: any; status: 'ACCEPTED' | 'REJECTED' }>();
+    const examplesDir = path.join(process.cwd(), 'contracts', 'examples');
+
+    if (!fs.existsSync(examplesDir)) return ledger;
+
+    const files = fs.readdirSync(examplesDir).filter((file) => file.endsWith('.json'));
+
+    for (const file of files) {
+      const contractType = this.inferContractType(file);
+      if (!contractType) continue;
+
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(examplesDir, file), 'utf-8'));
+        ledger.set(data.id, { contractType, data, status: 'ACCEPTED' });
+      } catch (error) {
+        console.warn(`⚠️  [ContractGuard] Failed to load offline contract ${file}: ${error}`);
+      }
+    }
+
+    return ledger;
+  }
+
+  /**
+   * Determine if a live database connection is available.
+   */
+  private isDatabaseAvailable(): boolean {
+    return !AIR_LOCK_MODE && !!prisma;
+  }
+
+  /**
    * Verify integrity hash (for auditing)
    */
   verifyIntegrityHash(
@@ -122,7 +157,7 @@ export class ContractGuard {
     const { contractId, contractType, data } = contract;
 
     // Air Lock Mode check
-    if (AIR_LOCK_MODE || !prisma) {
+    if (!this.isDatabaseAvailable()) {
       console.warn(`⚠️  [ContractGuard] Air Lock Mode: Cannot write to database`);
       return {
         success: false,
@@ -145,7 +180,7 @@ export class ContractGuard {
 
     // Step 2: Write to Contract ledger (always)
     try {
-      const contractLedger = await prisma.contract.create({
+      const contractLedger = await prisma!.contract.create({
         data: {
           contractId,
           contractType,
@@ -191,7 +226,7 @@ export class ContractGuard {
   private async writeProjection(contractType: string, data: any): Promise<void> {
     switch (contractType) {
       case 'Order':
-        await prisma.order.create({
+        await prisma!.order.create({
           data: {
             orderId: data.id,
             schemaVersion: data.schema_version,
@@ -212,7 +247,7 @@ export class ContractGuard {
         break;
 
       case 'Pulse':
-        await prisma.pulse.create({
+        await prisma!.pulse.create({
           data: {
             pulseId: data.id,
             schemaVersion: data.schema_version,
@@ -233,7 +268,7 @@ export class ContractGuard {
         break;
 
       case 'Decision':
-        await prisma.decision.create({
+        await prisma!.decision.create({
           data: {
             decisionId: data.id,
             schemaVersion: data.schema_version,
@@ -254,7 +289,7 @@ export class ContractGuard {
         break;
 
       case 'Intent':
-        await prisma.intent.create({
+        await prisma!.intent.create({
           data: {
             intentId: data.id,
             schemaVersion: data.schema_version,
@@ -277,7 +312,7 @@ export class ContractGuard {
         break;
 
       case 'Uplink':
-        await prisma.uplink.create({
+        await prisma!.uplink.create({
           data: {
             uplinkId: data.id,
             schemaVersion: data.schema_version,
@@ -303,12 +338,16 @@ export class ContractGuard {
    * Get contract status from ledger
    */
   async getContractStatus(contractId: string): Promise<{ status: string; validationLog?: string; integrityHash?: string } | null> {
-    if (AIR_LOCK_MODE || !prisma) {
-      console.warn(`⚠️  [ContractGuard] Air Lock Mode: Cannot access database`);
-      return null;
+    if (!this.isDatabaseAvailable()) {
+      const offline = this.offlineLedger.get(contractId);
+      if (!offline) return null;
+
+      return {
+        status: offline.status
+      };
     }
 
-    const contract = await prisma.contract.findUnique({
+    const contract = await prisma!.contract.findUnique({
       where: { contractId },
       select: { status: true, validationLog: true, integrityHash: true }
     });
@@ -330,9 +369,20 @@ export class ContractGuard {
     status?: string;
     limit?: number;
   }): Promise<any[]> {
-    if (AIR_LOCK_MODE || !prisma) {
-      console.warn(`⚠️  [ContractGuard] Air Lock Mode: Cannot access database`);
-      return [];
+    if (!this.isDatabaseAvailable()) {
+      const contracts = Array.from(this.offlineLedger.entries()).map(([contractId, details]) => ({
+        contractId,
+        contractType: details.contractType,
+        status: details.status,
+        rawJson: details.data,
+        createdAt: new Date(details.data.created_at),
+        createdBy: details.data.created_by
+      }));
+
+      return contracts
+        .filter((contract) => !filters?.contractType || contract.contractType === filters.contractType)
+        .filter((contract) => !filters?.status || contract.status === filters.status)
+        .slice(0, filters?.limit || 100);
     }
 
     const where: any = {};
@@ -340,11 +390,30 @@ export class ContractGuard {
     if (filters?.contractType) where.contractType = filters.contractType;
     if (filters?.status) where.status = filters.status;
 
-    return await prisma.contract.findMany({
+    return await prisma!.contract.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: filters?.limit || 100
     });
+  }
+
+  /**
+   * Infer contract type from filename (used for offline ledger loading)
+   */
+  private inferContractType(filename: string): string | null {
+    const typeMap: Record<string, string> = {
+      order: 'Order',
+      pulse: 'Pulse',
+      decision: 'Decision',
+      intent: 'Intent',
+      uplink: 'Uplink'
+    };
+
+    for (const [prefix, type] of Object.entries(typeMap)) {
+      if (filename.toLowerCase().startsWith(prefix)) return type;
+    }
+
+    return null;
   }
 }
 
