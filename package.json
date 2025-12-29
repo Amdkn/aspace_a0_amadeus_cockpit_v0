@@ -4,6 +4,7 @@
   "description": "Noyau de l'OS A'Space - Mode Sobriété Pure Node",
   "main": "index.js",
   "scripts": {
+    "start": "node dist/scripts/sync-contracts.js",
     "validate": "npm run build && node validate_contracts.js",
     "build": "tsc",
     "prisma:migrate": "prisma migrate dev",
