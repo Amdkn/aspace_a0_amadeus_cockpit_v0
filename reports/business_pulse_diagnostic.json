@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "mission": "BUSINESS_PULSE_DIAGNOSTIC",
+    "generated_at": "2025-12-29T00:00:51.639659",
+    "supervisor": "A1_RICK_JULES"
+  },
+  "executive_status": {
+    "readiness": "MEDIUM",
+    "score": "6/10",
+    "risks": {
+      "operational": "MEDIUM",
+      "structural": "LOW"
+    }
+  },
+  "details": {
+    "sop_coverage": "8 SOPs found",
+    "protocols": [
+      "order.schema",
+      "intent.schema",
+      "pulse.schema",
+      "uplink.schema",
+      "decision.schema"
+    ],
+    "bottlenecks": [
+      "MISSING_ENV"
+    ]
+  }
+}
