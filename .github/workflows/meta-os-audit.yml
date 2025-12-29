@@ -1,0 +1,141 @@
+name: Meta-OS Audit (A3 Scans + Air Lock)
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - 'rick/**'
+
+jobs:
+  meta-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build project
+        run: npm run build
+      
+      - name: Create reports directory
+        run: mkdir -p reports
+      
+      # A3 Scan 1: Prisma paths scan
+      - name: A3 Scan - Prisma usage paths
+        run: |
+          echo "Scanning for Prisma usage patterns..."
+          grep -r "prisma\." src/ --include="*.ts" --include="*.js" -n || true > reports/evidence_prisma_paths.txt
+          echo '{"scan":"prisma_paths","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'$(grep -r "prisma\." src/ --include="*.ts" --include="*.js" -c || echo 0)'}' > reports/evidence_prisma_paths.json
+        continue-on-error: true
+      
+      # A3 Scan 2: Validator uniqueness scan
+      - name: A3 Scan - Validator uniqueness
+        run: |
+          echo "Scanning for validator usage..."
+          grep -r "validate" src/ --include="*.ts" --include="*.js" -n || true > reports/evidence_validator_uniqueness.txt
+          echo '{"scan":"validator_uniqueness","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'$(grep -r "validate" src/ --include="*.ts" --include="*.js" -c || echo 0)'}' > reports/evidence_validator_uniqueness.json
+        continue-on-error: true
+      
+      # A3 Scan 3: Secrets scan
+      - name: A3 Scan - Secrets detection
+        run: |
+          echo "Scanning for potential secrets..."
+          grep -r -i "password\|secret\|api_key\|token" . --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git -n || true > reports/evidence_secrets_scan.txt
+          echo '{"scan":"secrets_detection","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","matches":'$(grep -r -i "password\|secret\|api_key\|token" . --include="*.ts" --include="*.js" --exclude-dir=node_modules --exclude-dir=.git -c || echo 0)'}' > reports/evidence_secrets_scan.json
+        continue-on-error: true
+      
+      # Run validation and capture output
+      - name: Run contract validation
+        run: |
+          npm run validate 2>&1 | tee reports/evidence_validate.log
+          echo '{"task":"validate","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","exit_code":'$?'}' > reports/evidence_validate.json
+        continue-on-error: true
+      
+      # Run unit tests and capture output
+      - name: Run unit tests
+        run: |
+          npm test 2>&1 | tee reports/evidence_tests.log
+          TEST_EXIT=$?
+          echo '{"task":"unit_tests","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","exit_code":'$TEST_EXIT'}' > reports/evidence_tests.json
+          exit $TEST_EXIT
+        continue-on-error: true
+      
+      # Run Air Lock integration test
+      - name: Run Air Lock integration test
+        run: |
+          npm run test:airlock 2>&1 | tee reports/evidence_airlock_runtime.log
+          AIRLOCK_EXIT=$?
+          # Extract JSON evidence from test output
+          tail -n +$(grep -n "📋 EVIDENCE OUTPUT" reports/evidence_airlock_runtime.log | cut -d: -f1) reports/evidence_airlock_runtime.log | grep -A 1000 "{" | head -n -1 > reports/evidence_airlock_runtime.json || echo '{"error":"Failed to extract JSON evidence"}' > reports/evidence_airlock_runtime.json
+          exit $AIRLOCK_EXIT
+        env:
+          ASPACE_AIR_LOCK_MODE: 'true'
+        continue-on-error: true
+      
+      # Create evidence index
+      - name: Create evidence index
+        if: always()
+        run: |
+          cat > reports/evidence_index.json << 'EOF'
+          {
+            "workflow": "meta-os-audit",
+            "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "evidence_files": [
+              "evidence_prisma_paths.json",
+              "evidence_validator_uniqueness.json",
+              "evidence_secrets_scan.json",
+              "evidence_validate.json",
+              "evidence_tests.json",
+              "evidence_airlock_runtime.json"
+            ],
+            "logs": [
+              "evidence_prisma_paths.txt",
+              "evidence_validator_uniqueness.txt",
+              "evidence_secrets_scan.txt",
+              "evidence_validate.log",
+              "evidence_tests.log",
+              "evidence_airlock_runtime.log"
+            ]
+          }
+          EOF
+      
+      # Upload all reports as artifacts (always, even on failure)
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-os-audit-reports
+          path: reports/
+          retention-days: 30
+      
+      # Final check: Fail if any critical test failed
+      - name: Check critical tests status
+        if: always()
+        run: |
+          echo "Checking test results..."
+          TESTS_EXIT=$(jq -r '.exit_code' reports/evidence_tests.json 2>/dev/null || echo 1)
+          AIRLOCK_EXIT=$(jq -r '.exit_code' reports/evidence_airlock_runtime.json 2>/dev/null || echo 1)
+          
+          echo "Unit tests exit code: $TESTS_EXIT"
+          echo "Air Lock test exit code: $AIRLOCK_EXIT"
+          
+          if [ "$TESTS_EXIT" != "0" ] || [ "$AIRLOCK_EXIT" != "0" ]; then
+            echo "❌ One or more critical tests failed"
+            exit 1
+          else
+            echo "✅ All critical tests passed"
+            exit 0
+          fi
