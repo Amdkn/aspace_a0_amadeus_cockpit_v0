@@ -44,5 +44,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "console.log('healthy')" || exit 1
 
-# Default command: validate contracts, migrate database, sync contracts
-CMD ["sh", "-c", "npm run validate && npx prisma migrate deploy && npm run sync-contracts"]
+# Default command: migrate database, then start application
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
