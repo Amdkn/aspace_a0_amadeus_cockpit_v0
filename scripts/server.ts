@@ -18,7 +18,7 @@ import ContractGuard, { ContractInput } from '../src/lib/contract-guard';
 
 const PORT = process.env.PORT || 3000;
 let isSyncing = false;
-let lastSyncResult: any = null;
+let lastSyncResult: SyncResult | null = null;
 let lastSyncTime: Date | null = null;
 
 interface SyncResult {
@@ -37,7 +37,7 @@ interface SyncResult {
 
 async function syncContracts(): Promise<SyncResult> {
   console.log('🌿 [A\'Space OS] Contract Sync - Replay JSON contracts to database');
-  console.log('=' .repeat(70));
+  console.log('='.repeat(70));
 
   const guard = new ContractGuard();
   const contractsDir = path.join(process.cwd(), 'contracts', 'examples');
@@ -142,7 +142,7 @@ async function syncContracts(): Promise<SyncResult> {
 
       const contract: ContractInput = {
         contractId,
-        contractType: contractType as any,
+        contractType: contractType as 'Order' | 'Pulse' | 'Decision' | 'Intent' | 'Uplink',
         data
       };
 
@@ -212,6 +212,9 @@ async function syncContracts(): Promise<SyncResult> {
 /**
  * Infer contract type from filename
  * Examples: order.example.json -> Order, pulse.example.json -> Pulse
+ * 
+ * NOTE: This function is duplicated from sync-contracts.ts to keep the server
+ * self-contained. In a future refactor, this could be extracted to a shared utility.
  */
 function inferContractType(filename: string): string | null {
   const typeMap: Record<string, string> = {
